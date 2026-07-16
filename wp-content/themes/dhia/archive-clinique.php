@@ -1,4 +1,10 @@
-<?php
+<?php/**
+ * The template for displaying archive cliques
+ *
+ * @link https://developer.wordpress.org/themes/basics/template-hierarchy/
+ *
+ * @package dhia
+ */
 if ( ! defined( 'ABSPATH' ) ) exit;
 get_header();
 ?>
