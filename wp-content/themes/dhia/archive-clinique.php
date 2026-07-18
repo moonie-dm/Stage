@@ -10,7 +10,13 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 get_header();
 ?>
 
-<h1>Annuaire des cliniques dentaires</h1>
+<section class="page-hero">
+	<div class="container">
+		<span class="eyebrow"><?php echo esc_html( wp_count_posts( 'clinique' )->publish ); ?> cliniques référencées</span>
+		<h1>Annuaire des cliniques dentaires du Québec</h1>
+	</div>
+</section>
+
 
 <div class="clinic-grid">
 	<?php if ( have_posts() ) : ?>
