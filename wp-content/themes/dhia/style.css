@@ -968,31 +968,34 @@ textarea {
 	margin-bottom: 1.5em;
 }
 /* ==========================================================================
-   Design tokens — "Patient Dossier" system
+   Design tokens — Annuaire des Cliniques
    ========================================================================== */
 :root{
-	--ink: #0E2430;
+	--ink: #14212B;
 	--ink-soft: #4C6470;
-	--primary: #0B4F6C;
-	--primary-dark: #073A50;
-	--primary-tint: #E7F0F3;
-	--accent: #2FA88A;
-	--accent-dark: #22826C;
-	--gold: #E3A008;
-	--bg: #F5F8F7;
+	--primary: #1D4E66;
+	--primary-dark: #123444;
+	--primary-tint: #E7EEF1;
+	--accent: #12A594;
+	--accent-dark: #0C7E71;
+	--accent-tint: #E1F5F2;
+	--warm: #F2A65A;
+	--warm-dark: #DB8A38;
+	--warm-tint: #FDF0E0;
+	--bg: #F6F8F9;
 	--surface: #FFFFFF;
-	--line: #DDE6E6;
-	--line-soft: #EDF3F3;
+	--line: #E2E8EC;
+	--line-soft: #EEF3F4;
 
-	--font-display: 'Newsreader', Georgia, serif;
-	--font-body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+	--font-display: 'Fraunces', Georgia, serif;
+	--font-body: 'Plus Jakarta Sans', -apple-system, 'Segoe UI', sans-serif;
 	--font-mono: 'IBM Plex Mono', Consolas, monospace;
 
 	--radius-sm: 6px;
 	--radius-md: 10px;
-	--radius-lg: 16px;
-	--shadow-card: 0 1px 2px rgba(14,36,48,.06), 0 8px 20px -10px rgba(14,36,48,.16);
-	--shadow-pop: 0 14px 32px -10px rgba(14,36,48,.28);
+	--radius-lg: 20px;
+	--shadow-card: 0 1px 2px rgba(20,33,43,.06), 0 10px 26px -14px rgba(20,33,43,.18);
+	--shadow-pop: 0 18px 40px -14px rgba(20,33,43,.30);
 	--container: 1160px;
 }
 
@@ -1006,7 +1009,6 @@ body{
 	margin: 0;
 	-webkit-font-smoothing: antialiased;
 }
-
 .acdq-mono{ font-family: var(--font-mono); }
 
 h1, h2, h3, h4{
@@ -1016,7 +1018,7 @@ h1, h2, h3, h4{
 	line-height: 1.15;
 	margin: 0 0 .5em;
 }
-h1{ font-size: clamp(2rem, 4vw, 2.75rem); }
+h1{ font-size: clamp(2rem, 4vw, 2.9rem); }
 h2{ font-size: clamp(1.3rem, 2.4vw, 1.6rem); color: var(--primary-dark); }
 
 a{ color: var(--primary); text-decoration: none; }
@@ -1050,7 +1052,7 @@ a:hover{ color: var(--accent-dark); }
 .btn:hover{ transform: translateY(-1px); }
 .btn-primary{ background: var(--accent); color: #fff; }
 .btn-primary:hover{ background: var(--accent-dark); color: #fff; }
-.btn-ghost{ background: transparent; color: var(--primary); border-color: var(--line); }
+.btn-ghost{ background: var(--surface); color: var(--primary); border-color: var(--line); }
 .btn-ghost:hover{ border-color: var(--primary); }
 
 /* ==========================================================================
@@ -1079,72 +1081,80 @@ a:hover{ color: var(--accent-dark); }
 	display: inline-block;
 }
 .main-navigation{ flex: 1; }
-.main-navigation ul{
-	display: flex; gap: 26px; list-style: none; margin: 0; padding: 0;
-}
+.main-navigation ul{ display: flex; gap: 26px; list-style: none; margin: 0; padding: 0; }
 .main-navigation a{ color: var(--ink-soft); font-weight: 500; }
 .main-navigation a:hover{ color: var(--primary); }
 
 /* ==========================================================================
-   Hero (used on archive + homepage)
+   Hero
    ========================================================================== */
-.page-hero{
-	background: var(--primary-dark);
-	color: #fff;
-	padding: 56px 0 40px;
-}
-.page-hero .eyebrow{ color: #9FD3C7; }
+.page-hero{ background: var(--primary-dark); color: #fff; padding: 56px 0 40px; }
+.page-hero .eyebrow{ color: #7FCFC4; }
 .page-hero h1{ color: #fff; margin: 0; }
 
 /* ==========================================================================
-   Clinic directory grid — signature "dossier tab" cards
+   Clinic grid + cards
    ========================================================================== */
 main{ max-width: var(--container); margin: 0 auto; padding: 40px 24px 80px; }
 
 .clinic-grid{
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-	gap: 26px;
+	gap: 22px;
 	margin-top: 8px;
 }
 
 .clinic-card{
-	position: relative;
 	background: var(--surface);
 	border: 1px solid var(--line);
 	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-card);
-	padding: 22px 22px 20px;
-	margin-top: 14px;
+	padding: 20px;
 	transition: transform .15s ease, box-shadow .15s ease;
 }
 .clinic-card:hover{ transform: translateY(-3px); box-shadow: var(--shadow-pop); }
-
 .clinic-card img{
 	width: 100%; height: 150px; object-fit: cover;
 	border-radius: var(--radius-md);
 	margin-bottom: 14px;
 }
-
-.clinic-card h2{
-	font-size: 1.1rem; margin: 0 0 8px;
-}
+.clinic-card h2{ font-size: 1.1rem; margin: 0 0 8px; }
 .clinic-card h2 a{ color: var(--ink); }
-
 .clinic-card p{ font-size: .88rem; color: var(--ink-soft); margin: 4px 0; }
 
 .tag{
-	position: absolute;
-	top: -12px; left: 20px;
-	background: var(--primary);
-	color: #fff;
-	font-family: var(--font-mono);
-	font-size: .68rem;
-	letter-spacing: .05em;
-	text-transform: uppercase;
-	padding: 5px 12px 6px;
-	border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+	display: inline-block;
+	background: var(--primary-tint);
+	color: var(--primary-dark);
+	font-size: .72rem; font-weight: 600;
+	padding: 4px 12px;
+	border-radius: 999px;
+	margin: 8px 0 0;
 }
+
+/* Availability chip — signature element */
+.availability-chip{
+	display: inline-flex; align-items: center; gap: 8px;
+	font-size: .85rem; font-weight: 600;
+	padding-top: 14px; margin-top: 14px;
+	border-top: 1px solid var(--line-soft);
+	width: 100%;
+}
+.availability-chip .dot{
+	width: 8px; height: 8px; border-radius: 999px;
+	background: var(--accent); position: relative; flex-shrink: 0;
+}
+.availability-chip .dot::before{
+	content: ''; position: absolute; inset: 0; border-radius: 999px;
+	background: var(--accent); opacity: .5;
+	animation: pulse 1.8s ease-out infinite;
+}
+@keyframes pulse{ 0%{ transform: scale(1); opacity: .5; } 100%{ transform: scale(2.6); opacity: 0; } }
+.availability-chip.is-open{ color: var(--accent-dark); }
+.availability-chip.is-closed{ color: var(--ink-soft); }
+.availability-chip.is-closed .dot{ background: var(--ink-soft); }
+.availability-chip.is-closed .dot::before{ display: none; }
+@media (prefers-reduced-motion: reduce){ .availability-chip .dot::before{ animation: none; } }
 
 /* ==========================================================================
    Single clinic page
@@ -1156,71 +1166,39 @@ main{ max-width: var(--container); margin: 0 auto; padding: 40px 24px 80px; }
 	padding: 36px;
 	box-shadow: var(--shadow-card);
 }
-.clinic-single img{
-	width: 100%; max-width: 480px;
-	border-radius: var(--radius-md);
-	margin: 14px 0 22px;
-}
+.clinic-single img{ width: 100%; max-width: 480px; border-radius: var(--radius-md); margin: 14px 0 22px; }
 .clinic-region{
-	font-family: var(--font-mono);
-	text-transform: uppercase;
-	letter-spacing: .06em;
-	font-size: .78rem;
-	color: var(--accent-dark);
+	font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em;
+	font-size: .78rem; color: var(--accent-dark);
 }
 .clinic-badge{
-	display: inline-block;
-	background: var(--accent);
-	color: #fff;
+	display: inline-flex; align-items: center; gap: 8px;
+	background: var(--accent-tint); color: var(--accent-dark);
 	font-size: .85rem; font-weight: 600;
-	padding: 6px 14px;
-	border-radius: 999px;
-	margin: 12px 0;
+	padding: 8px 16px; border-radius: 999px; margin: 12px 0;
 }
-.clinic-specialites{
-	list-style: none; padding: 0;
-	display: flex; flex-wrap: wrap; gap: 8px;
-	margin: 10px 0 24px;
-}
+.clinic-specialites{ list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 24px; }
 .clinic-specialites li{
-	background: var(--primary-tint);
-	color: var(--primary-dark);
-	font-size: .8rem; font-weight: 600;
-	padding: 5px 12px;
-	border-radius: 999px;
+	background: var(--primary-tint); color: var(--primary-dark);
+	font-size: .8rem; font-weight: 600; padding: 5px 12px; border-radius: 999px;
 }
-.clinic-coordonnees, .clinic-hours{
-	border-top: 1px solid var(--line);
-	padding-top: 20px; margin-top: 20px;
-}
+.clinic-coordonnees, .clinic-hours{ border-top: 1px solid var(--line); padding-top: 20px; margin-top: 20px; }
 .clinic-hours ul{ list-style: none; padding: 0; }
 .clinic-hours li{
-	display: flex; justify-content: space-between;
-	max-width: 340px; padding: 7px 0;
-	border-bottom: 1px solid var(--line-soft);
-	font-size: .9rem;
-	font-family: var(--font-mono);
+	display: flex; justify-content: space-between; max-width: 340px;
+	padding: 7px 0; border-bottom: 1px solid var(--line-soft);
+	font-size: .9rem; font-family: var(--font-mono);
 }
 
 /* ==========================================================================
    Footer
    ========================================================================== */
-.site-footer{
-	background: var(--primary-dark);
-	color: #CFE3E9;
-	padding: 48px 0 24px;
-	margin-top: 40px;
-}
-.site-footer .container{
-	display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px;
-}
-.site-footer a{ color: #CFE3E9; }
+.site-footer{ background: var(--primary-dark); color: #B9CDD4; padding: 48px 0 24px; margin-top: 40px; }
+.site-footer .container{ display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
+.site-footer a{ color: #B9CDD4; }
 .site-footer a:hover{ color: #fff; }
 .site-footer p{ margin: 0; font-size: .85rem; }
 
-/* ==========================================================================
-   Responsive
-   ========================================================================== */
 @media (max-width: 720px){
 	.main-navigation ul{ gap: 16px; flex-wrap: wrap; }
 	.clinic-single{ padding: 24px; }

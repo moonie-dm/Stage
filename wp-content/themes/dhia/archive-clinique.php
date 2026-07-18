@@ -42,6 +42,13 @@ get_header();
 					?>
 					<span class="tag"><?php echo esc_html( $regions[0]->name ); ?></span>
 				<?php endif; ?>
+				<?php
+$accepte = get_field( 'accepte_nouveaux_patients' );
+?>
+<div class="availability-chip <?php echo $accepte ? 'is-open' : 'is-closed'; ?>">
+	<span class="dot"></span>
+	<?php echo $accepte ? "Accepte de nouveaux patients" : "Complet actuellement"; ?>
+</div>
 
 				<a href="<?php the_permalink(); ?>">Voir la fiche →</a>
 			</article>

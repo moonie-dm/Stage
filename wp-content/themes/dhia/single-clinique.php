@@ -20,8 +20,11 @@ while ( have_posts() ) : the_post();
 		<?php endif; ?>
 
 		<?php if ( get_field( 'accepte_nouveaux_patients' ) ) : ?>
-			<p class="clinic-badge">✅ Accepte de nouveaux patients</p>
-		<?php endif; ?>
+	<p class="clinic-badge">
+		<span style="width:8px;height:8px;border-radius:999px;background:var(--accent);display:inline-block;"></span>
+		Accepte de nouveaux patients
+	</p>
+<?php endif; ?>
 
 		<?php if ( $specialites && ! is_wp_error( $specialites ) ) : ?>
 			<ul class="clinic-specialites">
