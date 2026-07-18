@@ -1,4 +1,6 @@
-<?php if ( ! defined( 'ABSPATH' ) ) exit; ?><!DOCTYPE html>
+<?php if ( ! defined( 'ABSPATH' ) ) exit; ?>
+<!-- TESTHEADER123 -->
+<!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>">
