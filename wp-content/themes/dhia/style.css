@@ -1298,3 +1298,18 @@ main{ max-width: var(--container); margin: 0 auto; padding: 40px 24px 80px; }
 @media (max-width: 900px){
 	.directory-layout{ grid-template-columns: 1fr; }
 }
+.clinic-card-media{
+	height: 150px;
+	border-radius: var(--radius-md);
+	overflow: hidden;
+	margin-bottom: 14px;
+	background: var(--primary-tint);
+}
+.clinic-card-media img{
+	width: 100%; height: 100%; object-fit: cover; margin: 0;
+}
+.clinic-card-placeholder{
+	width: 100%; height: 100%;
+	display: flex; align-items: center; justify-content: center;
+	color: var(--primary);
+}

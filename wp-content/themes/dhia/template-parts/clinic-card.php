@@ -3,9 +3,19 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 $accepte = get_field( 'accepte_nouveaux_patients' );
 ?>
 <article class="clinic-card">
-	<?php if ( has_post_thumbnail() ) : ?>
-		<a href="<?php the_permalink(); ?>"><?php the_post_thumbnail( 'medium' ); ?></a>
-	<?php endif; ?>
+	<div class="clinic-card-media">
+		<a href="<?php the_permalink(); ?>">
+			<?php if ( has_post_thumbnail() ) : ?>
+				<?php the_post_thumbnail( 'medium' ); ?>
+			<?php else : ?>
+				<div class="clinic-card-placeholder" aria-hidden="true">
+					<svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+						<path d="M12 2 4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4Z" stroke="currentColor" stroke-width="1.5"/>
+					</svg>
+				</div>
+			<?php endif; ?>
+		</a>
+	</div>
 
 	<h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
 

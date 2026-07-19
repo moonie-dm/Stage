@@ -29,7 +29,7 @@ add_action( 'admin_menu', 'acdq_import_menu' );
 
 function acdq_csv_columns() {
 	return array(
-		'titre', 'description', 'adresse', 'ville', 'code_postal', 'telephone', 'courriel',
+		'titre', 'image_url', 'description', 'adresse', 'ville', 'code_postal', 'telephone', 'courriel',
 		'site_web', 'courriel_rdv', 'accepte_nouveaux_patients', 'latitude', 'longitude',
 		'region', 'specialites',
 		'heures_lundi', 'heures_mardi', 'heures_mercredi', 'heures_jeudi',
@@ -51,11 +51,11 @@ function acdq_maybe_serve_template() {
 	fputs( $out, "\xEF\xBB\xBF" ); // UTF-8 BOM so accents display correctly in Excel
 	fputcsv( $out, acdq_csv_columns() );
 	fputcsv( $out, array(
-		'Clinique Dentaire Exemple', 'Une courte description de la clinique.', '123 rue Principale', 'Québec', 'G1V 0A6',
-		'418 555-0123', 'info@exemple.ca', 'https://exemple.ca', 'rdv@exemple.ca', 'oui', '46.8139', '-71.2080',
-		'Capitale-Nationale', 'Dentisterie générale | Urgence dentaire',
-		'8h00 - 17h00', '8h00 - 17h00', '8h00 - 17h00', '8h00 - 19h00', '8h00 - 16h00', 'Fermé', 'Fermé',
-	) );
+	'Clinique Dentaire Exemple', 'https://exemple.ca/photo-clinique.jpg', 'Une courte description de la clinique.', '123 rue Principale', 'Québec', 'G1V 0A6',
+	'418 555-0123', 'info@exemple.ca', 'https://exemple.ca', 'rdv@exemple.ca', 'oui', '46.8139', '-71.2080',
+	'Capitale-Nationale', 'Dentisterie générale | Urgence dentaire',
+	'8h00 - 17h00', '8h00 - 17h00', '8h00 - 17h00', '8h00 - 19h00', '8h00 - 16h00', 'Fermé', 'Fermé',
+) );
 	fclose( $out );
 	exit;
 }
@@ -168,6 +168,20 @@ function acdq_process_csv_import() {
 			$errors[] = "Ligne $row_num : " . $post_id->get_error_message();
 			continue;
 		}
+		// Sideload the featured image, if a URL was provided.
+if ( ! empty( $data['image_url'] ) && filter_var( $data['image_url'], FILTER_VALIDATE_URL ) ) {
+	require_once ABSPATH . 'wp-admin/includes/media.php';
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+
+	$attachment_id = media_sideload_image( esc_url_raw( $data['image_url'] ), $post_id, sanitize_text_field( $data['titre'] ), 'id' );
+
+	if ( is_wp_error( $attachment_id ) ) {
+		$errors[] = "Ligne $row_num : image non téléchargée (" . $attachment_id->get_error_message() . ").";
+	} else {
+		set_post_thumbnail( $post_id, $attachment_id );
+	}
+}
 
 		// ACF text/email/url fields — works whether or not ACF is active (falls back to plain post meta).
 		$field_map = array(
