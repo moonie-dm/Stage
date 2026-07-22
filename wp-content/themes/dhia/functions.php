@@ -146,6 +146,12 @@ function dhia_scripts() {
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
 	}
+	if ( is_post_type_archive( 'clinique' ) || is_tax( array( 'region', 'specialite' ) ) ) {
+	wp_enqueue_style( 'acdq-leaflet', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', array(), '1.9.4' );
+	wp_enqueue_script( 'acdq-leaflet', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', array(), '1.9.4', true );
+	wp_enqueue_script( 'acdq-map', get_template_directory_uri() . '/assets/js/map.js', array( 'acdq-leaflet' ), _S_VERSION, true );
+	wp_enqueue_script( 'acdq-distance', get_template_directory_uri() . '/assets/js/distance.js', array(), _S_VERSION, true );
+}
 }
 add_action( 'wp_enqueue_scripts', 'dhia_scripts' );
 
