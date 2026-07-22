@@ -176,4 +176,22 @@ if ( defined( 'JETPACK__VERSION' ) ) {
 	require get_template_directory() . '/inc/jetpack.php';
 }
 require get_template_directory() . '/inc/csv-importer.php';
+function acdq_get_open_status( $post_id = null ) {
+	if ( ! $post_id ) $post_id = get_the_ID();
+	$jours = array( 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche' );
+	$jour_index = (int) date_i18n( 'N' ) - 1;
+	$horaire = get_field( 'heures_' . $jours[ $jour_index ], $post_id );
+
+	if ( ! $horaire || strtolower( trim( $horaire ) ) === 'fermé' ) {
+		return array( 'ouvert' => false, 'texte' => 'Fermé aujourd\'hui' );
+	}
+	if ( preg_match( '/(\d{1,2})h(\d{2})\s*-\s*(\d{1,2})h(\d{2})/', $horaire, $m ) ) {
+		$maintenant = (int) date_i18n( 'Hi' );
+		$debut = (int) ( $m[1] . $m[2] );
+		$fin   = (int) ( $m[3] . $m[4] );
+		$ouvert = $maintenant >= $debut && $maintenant <= $fin;
+		return array( 'ouvert' => $ouvert, 'texte' => ( $ouvert ? 'Ouvert' : 'Fermé' ) . ' · ' . $horaire );
+	}
+	return array( 'ouvert' => false, 'texte' => $horaire );
+}
 

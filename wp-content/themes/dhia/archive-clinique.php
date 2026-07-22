@@ -32,6 +32,11 @@ get_template_part( 'template-parts/breadcrumbs' );
 	</aside>
 
 	<div class="results-list">
+		<div class="filter-chips">
+	<button type="button" class="filter-chip is-active">Toutes</button>
+	<button type="button" class="filter-chip">Ouvert maintenant</button>
+	<button type="button" class="filter-chip">Nouveaux patients</button>
+</div>
 		<div class="clinic-grid">
 			<?php if ( have_posts() ) : while ( have_posts() ) : the_post();
 				get_template_part( 'template-parts/clinic-card' );
