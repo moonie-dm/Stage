@@ -5,7 +5,7 @@ $statut  = acdq_get_open_status();
 $tel     = get_field( 'telephone' );
 $lat     = get_field( 'latitude' );
 $lng     = get_field( 'longitude' );
-$rating  = acdq_get_average_rating( get_the_ID() ); // returns 0 / no reviews if system not yet ported
+$rating = function_exists( 'acdq_get_average_rating' ) ? acdq_get_average_rating( get_the_ID() ) : array( 'average' => 0, 'count' => 0 );
 ?>
 <article class="clinic-row" data-lat="<?php echo esc_attr( $lat ); ?>" data-lng="<?php echo esc_attr( $lng ); ?>" data-title="<?php echo esc_attr( get_the_title() ); ?>">
 	<div class="clinic-row-top">
