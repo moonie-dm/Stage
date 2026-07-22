@@ -1348,3 +1348,38 @@ main{ max-width: var(--container); margin: 0 auto; padding: 40px 24px 80px; }
 }
 .filter-chip:hover{ border-color: var(--accent); color: var(--accent-dark); }
 .filter-chip.is-active{ background: var(--primary); border-color: var(--primary); color: #fff; }
+/* Stats bar */
+.stats-bar{ background: var(--primary); color: #fff; padding: 40px 0; }
+.stats-bar-inner{ display: flex; justify-content: center; gap: 64px; flex-wrap: wrap; text-align: center; }
+.stat-number{ font-size: 2.2rem; font-weight: 500; color: #fff; }
+.stat-number span{ color: var(--accent); }
+.stat-label{ font-size: .85rem; color: rgba(255,255,255,.7); margin-top: 4px; }
+
+/* Info / "how it works" section */
+.info-section{ padding: 64px 24px; background: var(--surface); }
+.info-section .container{ max-width: var(--container); margin: 0 auto; text-align: center; }
+.info-section-lead{ color: var(--ink-soft); max-width: 480px; margin: 0 auto 36px; }
+.info-grid{ display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; text-align: left; }
+.info-card{ background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 28px; }
+.info-card-icon{ font-size: 1.8rem; display: block; margin-bottom: 12px; }
+.info-card h3{ font-size: 1.05rem; margin-bottom: 8px; }
+.info-card p{ font-size: .9rem; color: var(--ink-soft); margin: 0; }
+
+/* FAQ accordion */
+.faq-section{ padding: 64px 24px; }
+.faq-list{ max-width: 720px; margin: 28px auto 0; display: flex; flex-direction: column; gap: 10px; }
+.faq-item{
+	background: var(--surface); border: 1px solid var(--line);
+	border-radius: var(--radius-md); padding: 4px 20px;
+}
+.faq-item summary{
+	padding: 16px 0; cursor: pointer; font-weight: 600; color: var(--ink);
+	list-style: none; display: flex; justify-content: space-between; align-items: center;
+}
+.faq-item summary::-webkit-details-marker{ display: none; }
+.faq-item summary::after{ content: "+"; color: var(--accent); font-size: 1.3rem; font-weight: 400; }
+.faq-item[open] summary::after{ content: "−"; }
+.faq-item p{ padding-bottom: 18px; color: var(--ink-soft); font-size: .92rem; margin: 0; }
+
+.home-latest{ padding: 24px 24px 72px; }
+.home-latest-cta{ text-align: center; margin-top: 28px; }
