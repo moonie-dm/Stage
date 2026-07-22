@@ -1413,3 +1413,11 @@ main{ max-width: var(--container); margin: 0 auto; padding: 40px 24px 80px; }
 
 .clinic-row-actions{ display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
 .trust-box{ display: flex; align-items: center; gap: 8px; background: var(--accent-tint); color: var(--accent-dark); font-size: .85rem; font-weight: 600; padding: 10px 16px; border-radius: var(--radius-sm); }
+.acdq-marker-pin{
+	width: 26px; height: 26px;
+	background: var(--accent);
+	border: 3px solid #fff;
+	border-radius: 50% 50% 50% 0;
+	transform: rotate(-45deg);
+	box-shadow: 0 2px 6px rgba(0,0,0,.3);
+}

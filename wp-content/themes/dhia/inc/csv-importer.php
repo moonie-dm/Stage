@@ -72,7 +72,7 @@ function acdq_render_import_page() {
 	<div class="wrap">
 		<h1>Importer des cliniques (CSV)</h1>
 
-		<p>Téléchargez d'abord le modèle, remplissez-le avec vos données (Excel, Google Sheets, etc.), exportez-le en <strong>CSV</strong>, puis téléversez-le ci-dessous.</p>
+		<p>Téléchargez d'abord le modèle, remplissez-le avec vos données, exportez-le en <strong>CSV</strong>, puis téléversez-le ci-dessous.</p>
 
 		<p><a href="<?php echo esc_url( add_query_arg( 'acdq_download_template', '1' ) ); ?>" class="button">⬇ Télécharger le modèle CSV</a></p>
 
@@ -80,7 +80,8 @@ function acdq_render_import_page() {
 			<div class="notice notice-<?php echo $results['errors'] ? 'warning' : 'success'; ?>">
 				<p>
 					<strong><?php echo esc_html( $results['created'] ); ?></strong> clinique(s) créée(s).
-					<?php if ( $results['skipped'] ) : ?> <strong><?php echo esc_html( $results['skipped'] ); ?></strong> ligne(s) ignorée(s) (titre déjà existant).<?php endif; ?>
+					<strong><?php echo esc_html( $results['updated'] ); ?></strong> clinique(s) mise(s) à jour.
+					<?php if ( $results['skipped'] ) : ?> <strong><?php echo esc_html( $results['skipped'] ); ?></strong> ligne(s) ignorée(s).<?php endif; ?>
 				</p>
 				<?php if ( $results['errors'] ) : ?>
 					<ul style="margin-left:20px;list-style:disc;">
@@ -97,6 +98,16 @@ function acdq_render_import_page() {
 					<th scope="row"><label for="acdq_csv_file">Fichier CSV</label></th>
 					<td><input type="file" name="acdq_csv_file" id="acdq_csv_file" accept=".csv" required></td>
 				</tr>
+				<tr>
+					<th scope="row">Mode</th>
+					<td>
+						<label>
+							<input type="checkbox" name="acdq_update_existing" value="1">
+							Mettre à jour les cliniques existantes (identifiées par titre exact) au lieu de les ignorer
+						</label>
+						<p class="description">Utile pour réimporter le même fichier après avoir ajouté des coordonnées GPS ou d'autres données manquantes.</p>
+					</td>
+				</tr>
 			</table>
 			<?php submit_button( 'Importer les cliniques' ); ?>
 		</form>
@@ -104,46 +115,41 @@ function acdq_render_import_page() {
 		<h2>Format attendu</h2>
 		<p>Colonnes (dans cet ordre, en-têtes exacts) :</p>
 		<code style="display:block;padding:10px;background:#f0f0f1;overflow-x:auto;white-space:pre;"><?php echo esc_html( implode( ', ', acdq_csv_columns() ) ); ?></code>
-		<ul style="margin-top:14px;list-style:disc;margin-left:20px;">
-			<li><strong>accepte_nouveaux_patients</strong> : écrire <code>oui</code> ou <code>non</code></li>
-			<li><strong>region</strong> : un seul nom de région, doit correspondre exactement à un terme existant (ex. <code>Montréal</code>)</li>
-			<li><strong>specialites</strong> : une ou plusieurs spécialités séparées par <code> | </code> (ex. <code>Orthodontie | Urgence dentaire</code>)</li>
-			<li>Les colonnes vides sont acceptées — vous pourrez compléter les fiches plus tard.</li>
-		</ul>
 	</div>
 	<?php
 }
 
 function acdq_process_csv_import() {
 	$created = 0;
+	$updated = 0;
 	$skipped = 0;
 	$errors  = array();
+	$update_mode = isset( $_POST['acdq_update_existing'] );
 
 	if ( empty( $_FILES['acdq_csv_file']['tmp_name'] ) || ! is_uploaded_file( $_FILES['acdq_csv_file']['tmp_name'] ) ) {
 		$errors[] = 'Aucun fichier reçu.';
-		return compact( 'created', 'skipped', 'errors' );
+		return compact( 'created', 'updated', 'skipped', 'errors' );
 	}
 
 	$handle = fopen( $_FILES['acdq_csv_file']['tmp_name'], 'r' );
 	if ( ! $handle ) {
 		$errors[] = 'Impossible de lire le fichier.';
-		return compact( 'created', 'skipped', 'errors' );
+		return compact( 'created', 'updated', 'skipped', 'errors' );
 	}
 
 	$header = fgetcsv( $handle );
 	if ( ! $header ) {
 		$errors[] = 'Fichier vide ou invalide.';
 		fclose( $handle );
-		return compact( 'created', 'skipped', 'errors' );
+		return compact( 'created', 'updated', 'skipped', 'errors' );
 	}
-	// Strip UTF-8 BOM from the first header cell if present.
 	$header[0] = preg_replace( '/^\xEF\xBB\xBF/', '', $header[0] );
 	$header = array_map( 'trim', $header );
 
 	$row_num = 1;
 	while ( ( $row = fgetcsv( $handle ) ) !== false ) {
 		$row_num++;
-		if ( count( array_filter( $row, function ( $v ) { return trim( $v ) !== ''; } ) ) === 0 ) continue; // skip fully blank rows
+		if ( count( array_filter( $row, function ( $v ) { return trim( $v ) !== ''; } ) ) === 0 ) continue;
 
 		$data = array();
 		foreach ( $header as $i => $col ) $data[ $col ] = isset( $row[ $i ] ) ? trim( $row[ $i ] ) : '';
@@ -152,38 +158,45 @@ function acdq_process_csv_import() {
 			$errors[] = "Ligne $row_num : titre manquant, ignorée.";
 			continue;
 		}
-		if ( post_exists( $data['titre'], '', '', 'clinique' ) ) {
-			$skipped++;
-			continue;
+
+		$existing_id = post_exists( $data['titre'], '', '', 'clinique' );
+		$post_id = null;
+
+		if ( $existing_id ) {
+			if ( ! $update_mode ) {
+				$skipped++;
+				continue;
+			}
+			$post_id = $existing_id;
+			wp_update_post( array(
+				'ID'           => $post_id,
+				'post_content' => isset( $data['description'] ) ? wp_kses_post( $data['description'] ) : '',
+			) );
+			$updated++;
+		} else {
+			$post_id = wp_insert_post( array(
+				'post_type'    => 'clinique',
+				'post_title'   => sanitize_text_field( $data['titre'] ),
+				'post_content' => isset( $data['description'] ) ? wp_kses_post( $data['description'] ) : '',
+				'post_status'  => 'publish',
+			), true );
+
+			if ( is_wp_error( $post_id ) ) {
+				$errors[] = "Ligne $row_num : " . $post_id->get_error_message();
+				continue;
+			}
+			$created++;
 		}
 
-		$post_id = wp_insert_post( array(
-			'post_type'    => 'clinique',
-			'post_title'   => sanitize_text_field( $data['titre'] ),
-			'post_content' => isset( $data['description'] ) ? wp_kses_post( $data['description'] ) : '',
-			'post_status'  => 'publish',
-		), true );
-
-		if ( is_wp_error( $post_id ) ) {
-			$errors[] = "Ligne $row_num : " . $post_id->get_error_message();
-			continue;
+		// Image (only sideload for new posts without an existing thumbnail, to avoid re-downloading on every update)
+		if ( ! empty( $data['image_url'] ) && filter_var( $data['image_url'], FILTER_VALIDATE_URL ) && ! has_post_thumbnail( $post_id ) ) {
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			$attachment_id = media_sideload_image( esc_url_raw( $data['image_url'] ), $post_id, sanitize_text_field( $data['titre'] ), 'id' );
+			if ( ! is_wp_error( $attachment_id ) ) set_post_thumbnail( $post_id, $attachment_id );
 		}
-		// Sideload the featured image, if a URL was provided.
-if ( ! empty( $data['image_url'] ) && filter_var( $data['image_url'], FILTER_VALIDATE_URL ) ) {
-	require_once ABSPATH . 'wp-admin/includes/media.php';
-	require_once ABSPATH . 'wp-admin/includes/file.php';
-	require_once ABSPATH . 'wp-admin/includes/image.php';
 
-	$attachment_id = media_sideload_image( esc_url_raw( $data['image_url'] ), $post_id, sanitize_text_field( $data['titre'] ), 'id' );
-
-	if ( is_wp_error( $attachment_id ) ) {
-		$errors[] = "Ligne $row_num : image non téléchargée (" . $attachment_id->get_error_message() . ").";
-	} else {
-		set_post_thumbnail( $post_id, $attachment_id );
-	}
-}
-
-		// ACF text/email/url fields — works whether or not ACF is active (falls back to plain post meta).
 		$field_map = array(
 			'adresse' => 'adresse', 'ville' => 'ville', 'code_postal' => 'code_postal',
 			'telephone' => 'telephone', 'courriel' => 'courriel', 'site_web' => 'site_web',
@@ -205,11 +218,7 @@ if ( ! empty( $data['image_url'] ) && filter_var( $data['image_url'], FILTER_VAL
 
 		if ( ! empty( $data['region'] ) ) {
 			$term = get_term_by( 'name', $data['region'], 'region' );
-			if ( $term ) {
-				wp_set_object_terms( $post_id, (int) $term->term_id, 'region' );
-			} else {
-				$errors[] = "Ligne $row_num : région \"{$data['region']}\" introuvable, ignorée pour cette clinique.";
-			}
+			if ( $term ) wp_set_object_terms( $post_id, (int) $term->term_id, 'region' );
 		}
 
 		if ( ! empty( $data['specialites'] ) ) {
@@ -218,20 +227,14 @@ if ( ! empty( $data['image_url'] ) && filter_var( $data['image_url'], FILTER_VAL
 			foreach ( $names as $name ) {
 				if ( $name === '' ) continue;
 				$term = get_term_by( 'name', $name, 'specialite' );
-				if ( $term ) {
-					$term_ids[] = (int) $term->term_id;
-				} else {
-					$errors[] = "Ligne $row_num : spécialité \"$name\" introuvable, ignorée.";
-				}
+				if ( $term ) $term_ids[] = (int) $term->term_id;
 			}
 			if ( $term_ids ) wp_set_object_terms( $post_id, $term_ids, 'specialite' );
 		}
-
-		$created++;
 	}
 
 	fclose( $handle );
-	return compact( 'created', 'skipped', 'errors' );
+	return compact( 'created', 'updated', 'skipped', 'errors' );
 }
 
 /**
