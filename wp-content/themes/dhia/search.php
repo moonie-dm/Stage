@@ -1,53 +1,53 @@
 <?php
-/**
- * The template for displaying search results pages
- *
- * @link https://developer.wordpress.org/themes/basics/template-hierarchy/#search-result
- *
- * @package dhia
- */
-
+if ( ! defined( 'ABSPATH' ) ) exit;
 get_header();
+$specialites = get_terms( array( 'taxonomy' => 'specialite', 'hide_empty' => true ) );
+$search_term = get_search_query();
 ?>
 
-	<main id="primary" class="site-main">
+<div class="container">
+	<h1 class="archive-title">Résultats pour : « <?php echo esc_html( $search_term ); ?> »</h1>
 
-		<?php if ( have_posts() ) : ?>
+	<?php if ( have_posts() ) : ?>
 
-			<header class="page-header">
-				<h1 class="page-title">
-					<?php
-					/* translators: %s: search query. */
-					printf( esc_html__( 'Search Results for: %s', 'dhia' ), '<span>' . get_search_query() . '</span>' );
-					?>
-				</h1>
-			</header><!-- .page-header -->
+		<div class="filter-chips">
+			<button type="button" class="filter-chip" data-filter="open">Ouvert</button>
+			<button type="button" class="filter-chip" data-filter="accepting">Nouveaux patients</button>
+			<select class="filter-select">
+				<option value="">Toutes spécialités</option>
+				<?php if ( ! is_wp_error( $specialites ) ) foreach ( $specialites as $s ) : ?>
+					<option value="<?php echo esc_attr( $s->slug ); ?>"><?php echo esc_html( $s->name ); ?></option>
+				<?php endforeach; ?>
+			</select>
+			<span class="sort-label">Trier
+				<select class="filter-select">
+					<option>Plus récent</option>
+					<option>Nom (A-Z)</option>
+				</select>
+			</span>
+		</div>
 
-			<?php
-			/* Start the Loop */
-			while ( have_posts() ) :
-				the_post();
+		<div class="directory-split">
+			<div class="clinic-row-list">
+				<?php while ( have_posts() ) : the_post();
+					get_template_part( 'template-parts/clinic-row' );
+				endwhile; ?>
 
-				/**
-				 * Run the loop for the search to output the results.
-				 * If you want to overload this in a child theme then include a file
-				 * called content-search.php and that will be used instead.
-				 */
-				get_template_part( 'template-parts/content', 'search' );
+				<?php the_posts_pagination( array( 'prev_text' => '←', 'next_text' => '→' ) ); ?>
+			</div>
 
-			endwhile;
+			<div id="acdq-map" class="directory-map"></div>
+		</div>
 
-			the_posts_navigation();
+	<?php else : ?>
 
-		else :
+		<div class="search-no-results">
+			<h2>Aucun résultat</h2>
+			<p class="clinic-panel-empty">Aucune clinique ne correspond à « <?php echo esc_html( $search_term ); ?> ». Essayez un autre nom, une autre ville ou une autre spécialité.</p>
+			<a class="btn btn-primary" href="<?php echo esc_url( get_post_type_archive_link( 'clinique' ) ); ?>">Voir toutes les cliniques →</a>
+		</div>
 
-			get_template_part( 'template-parts/content', 'none' );
+	<?php endif; ?>
+</div>
 
-		endif;
-		?>
-
-	</main><!-- #main -->
-
-<?php
-get_sidebar();
-get_footer();
+<?php get_footer(); ?>

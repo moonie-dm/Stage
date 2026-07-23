@@ -9,6 +9,7 @@ function acdq_filter_cliniques() {
 	$accepting  = isset( $_POST['accepting'] ) && $_POST['accepting'] === '1';
 	$sort       = isset( $_POST['sort'] ) ? sanitize_text_field( wp_unslash( $_POST['sort'] ) ) : 'date';
 	$paged      = isset( $_POST['paged'] ) ? max( 1, (int) $_POST['paged'] ) : 1;
+	$search     = isset( $_POST['s'] ) ? sanitize_text_field( wp_unslash( $_POST['s'] ) ) : '';
 
 	$args = array(
 		'post_type'      => 'clinique',
@@ -17,6 +18,9 @@ function acdq_filter_cliniques() {
 		'paged'          => $paged,
 	);
 
+	if ( $search ) {
+		$args['s'] = $search;
+	}
 	if ( $specialite ) {
 		$args['tax_query'] = array( array( 'taxonomy' => 'specialite', 'field' => 'slug', 'terms' => $specialite ) );
 	}

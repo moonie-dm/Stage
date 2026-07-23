@@ -9,7 +9,9 @@
 		var specSelect = document.querySelector( '.filter-select' );
 		var sortSelect = document.querySelectorAll( '.filter-select' )[1];
 
-		var state = { open: false, accepting: false, specialite: '', sort: 'date' };
+		// Carries the current search term (if any) through every subsequent chip/sort refresh,
+		// so filtering on /?s=... results doesn't silently drop back to the full directory.
+		var state = { open: false, accepting: false, specialite: '', sort: 'date', search: acdqFilters.search || '' };
 
 		function toggleChip( btn, key ) {
 			btn.addEventListener( 'click', function () {
@@ -56,6 +58,7 @@
 			params.set( 'open', state.open ? '1' : '0' );
 			params.set( 'accepting', state.accepting ? '1' : '0' );
 			params.set( 'sort', state.sort );
+			params.set( 's', state.search );
 
 			fetch( acdqFilters.ajaxUrl, {
 				method: 'POST',

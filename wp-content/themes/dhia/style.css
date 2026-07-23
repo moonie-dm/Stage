@@ -1368,6 +1368,10 @@ main{ max-width: var(--container); margin: 0 auto; padding: 40px 24px 80px; }
 .home-latest-cta{ text-align: center; margin-top: 28px; }
 .archive-title{ max-width: var(--container); margin: 40px auto 8px; padding: 0 24px; }
 
+.search-no-results{ text-align: center; padding: 48px 28px; margin-top: 8px; }
+.search-no-results h2{ margin-bottom: 8px; }
+.search-no-results .clinic-panel-empty{ margin: 0 auto 20px; max-width: 480px; }
+
 .filter-chips{ display: flex; gap: 10px; flex-wrap: wrap; align-items: center; max-width: var(--container); margin: 0 auto 24px; padding: 0 24px; }
 .filter-select{ border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font-size: .85rem; font-family: var(--font-body); background: var(--surface); }
 .sort-label{ margin-left: auto; font-size: .85rem; color: var(--ink-soft); display: flex; align-items: center; gap: 8px; }
