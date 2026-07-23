@@ -214,7 +214,9 @@ function acdq_get_open_status( $post_id = null ) {
 	if ( ! $horaire || strtolower( trim( $horaire ) ) === 'fermé' ) {
 		return array( 'ouvert' => false, 'texte' => 'Fermé aujourd\'hui' );
 	}
-	if ( preg_match( '/(\d{1,2})h(\d{2})\s*-\s*(\d{1,2})h(\d{2})/', $horaire, $m ) ) {
+	// Accepts both "8h30 - 17h00" and the "8:30 – 20:00" format actually used in the
+	// clinic hours fields (colon instead of "h", en/em dash instead of a plain hyphen).
+	if ( preg_match( '/(\d{1,2})[h:](\d{2})\s*[-–—]\s*(\d{1,2})[h:](\d{2})/u', $horaire, $m ) ) {
 		$maintenant = (int) date_i18n( 'Hi' );
 		$debut = (int) ( $m[1] . $m[2] );
 		$fin   = (int) ( $m[3] . $m[4] );
