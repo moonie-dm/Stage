@@ -209,3 +209,83 @@ function acdq_get_open_status( $post_id = null ) {
 	return array( 'ouvert' => false, 'texte' => $horaire );
 }
 
+/**
+ * Add a 1-5 star rating field to the comment form, only for cliniques.
+ */
+function acdq_comment_form_add_rating( $comment_field ) {
+	if ( 'clinique' !== get_post_type() ) {
+		return $comment_field;
+	}
+	$options = '';
+	for ( $i = 5; $i >= 1; $i-- ) {
+		$options .= '<option value="' . $i . '">' . $i . ' - ' . str_repeat( '★', $i ) . '</option>';
+	}
+	$rating_field = '<p class="comment-form-rating">' .
+		'<label for="acdq_rating">' . esc_html__( 'Votre note', 'dhia' ) . '</label> ' .
+		'<select name="acdq_rating" id="acdq_rating" required>' .
+		'<option value="">' . esc_html__( 'Choisir une note', 'dhia' ) . '</option>' . $options .
+		'</select></p>';
+	return $rating_field . $comment_field;
+}
+add_filter( 'comment_form_field_comment', 'acdq_comment_form_add_rating' );
+
+/**
+ * Store the submitted rating as comment meta.
+ */
+function acdq_save_comment_rating( $comment_id ) {
+	if ( ! isset( $_POST['acdq_rating'] ) ) {
+		return;
+	}
+	$rating = (int) $_POST['acdq_rating'];
+	if ( $rating < 1 || $rating > 5 ) {
+		return;
+	}
+	add_comment_meta( $comment_id, 'acdq_rating', $rating, true );
+}
+add_action( 'comment_post', 'acdq_save_comment_rating' );
+
+/**
+ * Show each review's star rating above its comment text.
+ */
+function acdq_prepend_rating_to_comment_text( $comment_text, $comment = null ) {
+	if ( ! $comment || 'clinique' !== get_post_type( $comment->comment_post_ID ) ) {
+		return $comment_text;
+	}
+	$rating = (int) get_comment_meta( $comment->comment_ID, 'acdq_rating', true );
+	if ( $rating < 1 || $rating > 5 ) {
+		return $comment_text;
+	}
+	$stars = '<p class="comment-rating" aria-label="' . esc_attr( sprintf( '%d sur 5', $rating ) ) . '">' .
+		str_repeat( '★', $rating ) . str_repeat( '☆', 5 - $rating ) . '</p>';
+	return $stars . $comment_text;
+}
+add_filter( 'comment_text', 'acdq_prepend_rating_to_comment_text', 10, 2 );
+
+/**
+ * Average rating + review count for a clinique, based on approved comment ratings.
+ */
+function acdq_get_average_rating( $post_id = null ) {
+	if ( ! $post_id ) $post_id = get_the_ID();
+
+	$comments = get_comments( array(
+		'post_id' => $post_id,
+		'status'  => 'approve',
+		'type'    => 'comment',
+	) );
+
+	$total = 0;
+	$count = 0;
+	foreach ( $comments as $comment ) {
+		$rating = (int) get_comment_meta( $comment->comment_ID, 'acdq_rating', true );
+		if ( $rating >= 1 && $rating <= 5 ) {
+			$total += $rating;
+			$count++;
+		}
+	}
+
+	return array(
+		'average' => $count ? round( $total / $count, 1 ) : 0,
+		'count'   => $count,
+	);
+}
+

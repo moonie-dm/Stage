@@ -773,6 +773,19 @@ textarea {
 	word-wrap: break-word;
 }
 
+.comment-form-rating select {
+	font-family: var(--font-body);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	padding: .4em .6em;
+}
+
+.comment-rating {
+	color: var(--warm);
+	letter-spacing: 1px;
+	margin: 0 0 .4em;
+}
+
 .bypostauthor {
 	display: block;
 }

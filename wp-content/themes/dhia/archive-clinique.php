@@ -33,6 +33,8 @@ $specialites = get_terms( array( 'taxonomy' => 'specialite', 'hide_empty' => tru
 			<p>Aucune clinique n'est encore inscrite.</p>
 		<?php endif; ?>
 	</div>
+
+	<?php the_posts_pagination( array( 'prev_text' => '←', 'next_text' => '→' ) ); ?>
 </div>
 
 <?php get_footer(); ?>
