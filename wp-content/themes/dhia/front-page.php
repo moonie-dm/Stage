@@ -5,6 +5,10 @@ get_header();
 $total_cliniques   = wp_count_posts( 'clinique' )->publish;
 $total_regions     = wp_count_terms( array( 'taxonomy' => 'region', 'hide_empty' => false ) );
 $total_specialites = wp_count_terms( array( 'taxonomy' => 'specialite', 'hide_empty' => false ) );
+
+$archive_url  = get_post_type_archive_link( 'clinique' );
+$urgence_term = get_term_by( 'slug', 'urgence-dentaire', 'specialite' );
+$urgence_url  = $urgence_term ? get_term_link( $urgence_term ) : add_query_arg( 'f', 'open', $archive_url );
 ?>
 
 <!-- HERO + RECHERCHE -->
@@ -12,10 +16,16 @@ $total_specialites = wp_count_terms( array( 'taxonomy' => 'specialite', 'hide_em
 	<div class="container hero-search-inner">
 		<span class="eyebrow"><?php echo esc_html( $total_cliniques ); ?> cliniques référencées au Québec</span>
 		<h1>Trouvez un dentiste, région par région</h1>
-		<form class="search-bar" action="<?php echo esc_url( get_post_type_archive_link( 'clinique' ) ); ?>" method="get">
+		<p class="hero-search-sub">Comparez les cliniques, consultez les disponibilités et contactez-les directement — sans intermédiaire.</p>
+		<form class="search-bar" action="<?php echo esc_url( $archive_url ); ?>" method="get">
 			<input type="search" name="s" placeholder="Nom, ville ou spécialité">
 			<button type="submit" class="btn btn-primary">Rechercher</button>
 		</form>
+	</div>
+	<div class="hero-pills">
+		<a class="filter-chip" href="<?php echo esc_url( add_query_arg( 'f', 'open', $archive_url ) ); ?>">Ouvert maintenant</a>
+		<a class="filter-chip" href="<?php echo esc_url( $urgence_url ); ?>">Urgence</a>
+		<a class="filter-chip" href="<?php echo esc_url( add_query_arg( 'f', 'accepting', $archive_url ) ); ?>">Nouveaux patients</a>
 	</div>
 </section>
 

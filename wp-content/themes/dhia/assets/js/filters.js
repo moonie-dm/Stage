@@ -34,6 +34,19 @@
 			} );
 		}
 
+		// Pre-select a filter when arriving from a hero quick-filter pill (?f=open|accepting).
+		var presetFilter = new URLSearchParams( window.location.search ).get( 'f' );
+		if ( presetFilter === 'open' && openBtn ) {
+			state.open = true;
+			openBtn.classList.add( 'is-active' );
+		} else if ( presetFilter === 'accepting' && acceptBtn ) {
+			state.accepting = true;
+			acceptBtn.classList.add( 'is-active' );
+		}
+		if ( presetFilter === 'open' || presetFilter === 'accepting' ) {
+			fetchResults();
+		}
+
 		function fetchResults() {
 			list.style.opacity = '.5';
 			var params = new URLSearchParams();

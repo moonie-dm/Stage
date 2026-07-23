@@ -24,17 +24,19 @@ $specialites = get_terms( array( 'taxonomy' => 'specialite', 'hide_empty' => tru
 		</span>
 	</div>
 
-	<div id="acdq-map" class="directory-map"></div>
+	<div class="directory-split">
+		<div class="clinic-row-list">
+			<?php if ( have_posts() ) : while ( have_posts() ) : the_post();
+				get_template_part( 'template-parts/clinic-row' );
+			endwhile; else : ?>
+				<p>Aucune clinique n'est encore inscrite.</p>
+			<?php endif; ?>
 
-	<div class="clinic-row-list">
-		<?php if ( have_posts() ) : while ( have_posts() ) : the_post();
-			get_template_part( 'template-parts/clinic-row' );
-		endwhile; else : ?>
-			<p>Aucune clinique n'est encore inscrite.</p>
-		<?php endif; ?>
+			<?php the_posts_pagination( array( 'prev_text' => '←', 'next_text' => '→' ) ); ?>
+		</div>
+
+		<div id="acdq-map" class="directory-map"></div>
 	</div>
-
-	<?php the_posts_pagination( array( 'prev_text' => '←', 'next_text' => '→' ) ); ?>
 </div>
 
 <?php get_footer(); ?>
