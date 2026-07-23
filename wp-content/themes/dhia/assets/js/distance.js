@@ -8,18 +8,33 @@
 		return R * 2 * Math.atan2( Math.sqrt( a ), Math.sqrt( 1 - a ) );
 	}
 
-	document.addEventListener( 'DOMContentLoaded', function () {
+	var userPos = null;
+
+	function applyDistances() {
+		if ( ! userPos ) return;
+		document.querySelectorAll( '.clinic-row' ).forEach( function ( row ) {
+			var lat = parseFloat( row.getAttribute( 'data-lat' ) );
+			var lng = parseFloat( row.getAttribute( 'data-lng' ) );
+			var badge = row.querySelector( '.distance-badge' );
+			if ( isNaN( lat ) || isNaN( lng ) || ! badge ) return;
+			var dist = haversine( userPos.lat, userPos.lng, lat, lng );
+			badge.textContent = dist.toFixed( 1 ) + ' km';
+			badge.hidden = false;
+		} );
+	}
+
+	function initDistance() {
+		if ( userPos ) {
+			applyDistances();
+			return;
+		}
 		if ( ! navigator.geolocation ) return;
 		navigator.geolocation.getCurrentPosition( function ( pos ) {
-			var userLat = pos.coords.latitude, userLng = pos.coords.longitude;
-			document.querySelectorAll( '.clinic-row' ).forEach( function ( row ) {
-				var lat = parseFloat( row.getAttribute( 'data-lat' ) );
-				var lng = parseFloat( row.getAttribute( 'data-lng' ) );
-				if ( isNaN( lat ) || isNaN( lng ) ) return;
-				var dist = haversine( userLat, userLng, lat, lng );
-				var badge = row.querySelector( '.distance-badge' );
-				if ( badge ) badge.textContent = dist.toFixed( 1 ) + ' km';
-			} );
+			userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+			applyDistances();
 		}, function () { /* location denied — badges just stay hidden */ } );
-	} );
+	}
+
+	window.acdqInitDistance = initDistance;
+	document.addEventListener( 'DOMContentLoaded', initDistance );
 } )();

@@ -54,6 +54,7 @@
 					if ( res.success ) {
 						list.innerHTML = res.data.html;
 						if ( window.acdqInitMap ) window.acdqInitMap();
+						if ( window.acdqInitDistance ) window.acdqInitDistance();
 					}
 				} )
 				.finally( function () { list.style.opacity = '1'; } );
