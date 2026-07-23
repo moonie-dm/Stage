@@ -10,13 +10,18 @@ $specialites = get_terms( array( 'taxonomy' => 'specialite', 'hide_empty' => tru
 	<div class="filter-chips">
 		<button type="button" class="filter-chip" data-filter="open">Ouvert</button>
 		<button type="button" class="filter-chip" data-filter="accepting">Nouveaux patients</button>
-		<select class="filter-chip filter-select">
+		<select class="filter-select">
 			<option value="">Toutes spécialités</option>
 			<?php if ( ! is_wp_error( $specialites ) ) foreach ( $specialites as $s ) : ?>
 				<option value="<?php echo esc_attr( $s->slug ); ?>"><?php echo esc_html( $s->name ); ?></option>
 			<?php endforeach; ?>
 		</select>
-		<span class="sort-label">Trier <select class="filter-select"><option>Plus récent</option><option>Nom (A-Z)</option></select></span>
+		<span class="sort-label">Trier
+			<select class="filter-select">
+				<option>Plus récent</option>
+				<option>Nom (A-Z)</option>
+			</select>
+		</span>
 	</div>
 
 	<div id="acdq-map" class="directory-map"></div>
@@ -28,8 +33,6 @@ $specialites = get_terms( array( 'taxonomy' => 'specialite', 'hide_empty' => tru
 			<p>Aucune clinique n'est encore inscrite.</p>
 		<?php endif; ?>
 	</div>
-
-	<?php the_posts_pagination( array( 'prev_text' => '←', 'next_text' => '→' ) ); ?>
 </div>
 
 <?php get_footer(); ?>

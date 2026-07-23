@@ -152,9 +152,17 @@ function dhia_scripts() {
 	wp_enqueue_script( 'acdq-map', get_template_directory_uri() . '/assets/js/map.js', array( 'acdq-leaflet' ), _S_VERSION, true );
 	wp_enqueue_script( 'acdq-distance', get_template_directory_uri() . '/assets/js/distance.js', array(), _S_VERSION, true );
 }
+if ( is_post_type_archive( 'clinique' ) || is_tax( array( 'region', 'specialite' ) ) ) {
+	wp_enqueue_script( 'acdq-filters', get_template_directory_uri() . '/assets/js/filters.js', array(), _S_VERSION, true );
+	wp_localize_script( 'acdq-filters', 'acdqFilters', array(
+		'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+		'nonce'   => wp_create_nonce( 'acdq_nonce' ),
+	) );
+}
 }
 add_action( 'wp_enqueue_scripts', 'dhia_scripts' );
 
+require get_template_directory() . '/inc/ajax-filters.php';
 /**
  * Implement the Custom Header feature.
  */
