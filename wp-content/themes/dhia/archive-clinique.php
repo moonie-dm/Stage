@@ -20,6 +20,7 @@ $specialites = get_terms( array( 'taxonomy' => 'specialite', 'hide_empty' => tru
 			<select class="filter-select">
 				<option>Plus récent</option>
 				<option>Nom (A-Z)</option>
+				<option>Plus proche</option>
 			</select>
 		</span>
 	</div>

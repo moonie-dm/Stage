@@ -11,7 +11,10 @@
 
 		// Carries the current search term (if any) through every subsequent chip/sort refresh,
 		// so filtering on /?s=... results doesn't silently drop back to the full directory.
-		var state = { open: false, accepting: false, specialite: '', sort: 'date', search: acdqFilters.search || '' };
+		var state = {
+			open: false, accepting: false, specialite: '', sort: 'date',
+			search: acdqFilters.search || '', userLat: null, userLng: null,
+		};
 
 		function toggleChip( btn, key ) {
 			btn.addEventListener( 'click', function () {
@@ -31,7 +34,33 @@
 		}
 		if ( sortSelect ) {
 			sortSelect.addEventListener( 'change', function () {
-				state.sort = sortSelect.selectedIndex === 1 ? 'title' : 'date';
+				var idx = sortSelect.selectedIndex;
+				state.sort = idx === 1 ? 'title' : ( idx === 2 ? 'distance' : 'date' );
+				if ( state.sort === 'distance' ) {
+					requestDistanceSort();
+				} else {
+					fetchResults();
+				}
+			} );
+		}
+
+		// "Plus proche" needs the visitor's position — ask for it (once), then refresh.
+		// If it's denied or unavailable, we just fall back to the server's default order.
+		function requestDistanceSort() {
+			if ( state.userLat !== null ) {
+				fetchResults();
+				return;
+			}
+			if ( ! navigator.geolocation ) {
+				fetchResults();
+				return;
+			}
+			list.style.opacity = '.5';
+			navigator.geolocation.getCurrentPosition( function ( pos ) {
+				state.userLat = pos.coords.latitude;
+				state.userLng = pos.coords.longitude;
+				fetchResults();
+			}, function () {
 				fetchResults();
 			} );
 		}
@@ -59,6 +88,10 @@
 			params.set( 'accepting', state.accepting ? '1' : '0' );
 			params.set( 'sort', state.sort );
 			params.set( 's', state.search );
+			if ( state.sort === 'distance' && state.userLat !== null ) {
+				params.set( 'lat', state.userLat );
+				params.set( 'lng', state.userLng );
+			}
 
 			fetch( acdqFilters.ajaxUrl, {
 				method: 'POST',

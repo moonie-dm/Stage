@@ -9,7 +9,7 @@
 
 if ( ! defined( '_S_VERSION' ) ) {
 	// Replace the version number of the theme on each release.
-	define( '_S_VERSION', '1.3.0' );
+	define( '_S_VERSION', '1.4.0' );
 }
 
 /**
@@ -222,6 +222,31 @@ function acdq_get_open_status( $post_id = null ) {
 		return array( 'ouvert' => $ouvert, 'texte' => ( $ouvert ? 'Ouvert' : 'Fermé' ) . ' · ' . $horaire );
 	}
 	return array( 'ouvert' => false, 'texte' => $horaire );
+}
+
+/**
+ * Great-circle distance in km between two lat/lng points.
+ */
+function acdq_haversine_km( $lat1, $lng1, $lat2, $lng2 ) {
+	$r = 6371;
+	$d_lat = deg2rad( $lat2 - $lat1 );
+	$d_lng = deg2rad( $lng2 - $lng1 );
+	$a = sin( $d_lat / 2 ) ** 2 + cos( deg2rad( $lat1 ) ) * cos( deg2rad( $lat2 ) ) * sin( $d_lng / 2 ) ** 2;
+	return $r * 2 * atan2( sqrt( $a ), sqrt( 1 - $a ) );
+}
+
+/**
+ * Distance in km from a given point to a clinique, or INF if it has no coordinates
+ * (pushes clinics missing lat/lng to the end of a "closest first" sort instead of
+ * crashing the comparison).
+ */
+function acdq_distance_to_clinic( $post_id, $lat, $lng ) {
+	$clinic_lat = get_field( 'latitude', $post_id );
+	$clinic_lng = get_field( 'longitude', $post_id );
+	if ( $clinic_lat === '' || $clinic_lat === false || $clinic_lng === '' || $clinic_lng === false ) {
+		return INF;
+	}
+	return acdq_haversine_km( $lat, $lng, (float) $clinic_lat, (float) $clinic_lng );
 }
 
 /**
