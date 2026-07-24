@@ -18,9 +18,11 @@ function acdq_filter_cliniques() {
 	$args = array(
 		'post_type'      => 'clinique',
 		'post_status'    => 'publish',
-		// Pull everything when we need to filter/sort in PHP rather than in SQL: open-only is
-		// checked per-post below, and distance sorting needs the full set before it can rank them.
-		'posts_per_page' => ( $open_only || $sort_by_distance ) ? -1 : 10,
+		// Pull everything when we need to filter/sort in PHP rather than in SQL: open-only and
+		// accepting-patients are both checked per-post below (via the same get_field() the card
+		// display already trusts — a raw meta_query can disagree with it if a post has a stale
+		// duplicate meta row), and distance sorting needs the full set before it can rank them.
+		'posts_per_page' => ( $open_only || $accepting || $sort_by_distance ) ? -1 : 10,
 		'paged'          => $paged,
 	);
 
@@ -29,9 +31,6 @@ function acdq_filter_cliniques() {
 	}
 	if ( $specialite ) {
 		$args['tax_query'] = array( array( 'taxonomy' => 'specialite', 'field' => 'slug', 'terms' => $specialite ) );
-	}
-	if ( $accepting ) {
-		$args['meta_query'] = array( array( 'key' => 'accepte_nouveaux_patients', 'value' => '1' ) );
 	}
 	if ( $sort === 'title' ) {
 		$args['orderby'] = 'title';
@@ -63,6 +62,7 @@ function acdq_filter_cliniques() {
 				$statut = acdq_get_open_status();
 				if ( ! $statut['ouvert'] ) continue;
 			}
+			if ( $accepting && ! get_field( 'accepte_nouveaux_patients', get_the_ID() ) ) continue;
 			get_template_part( 'template-parts/clinic-row' );
 			$shown++;
 		}
