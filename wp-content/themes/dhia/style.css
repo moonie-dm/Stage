@@ -1633,4 +1633,68 @@ main{ max-width: var(--container); margin: 0 auto; padding: 40px 24px 80px; }
 	background: var(--accent); color: #fff; border: none; border-radius: 999px;
 	padding: .75em 1.6em; font-weight: 600; cursor: pointer; font-family: var(--font-body); font-size: .9rem;
 }
+
+/* AI FAQ CHAT WIDGET (inc/ai-chatbot.php + assets/js/ai-chatbot.js) */
+.acdq-chat{
+	position: fixed; right: 20px; bottom: 20px; z-index: 9999;
+	font-family: var(--font-body);
+}
+.acdq-chat-toggle{
+	width: 56px; height: 56px; border-radius: 50%; border: none;
+	background: var(--accent); color: #fff; cursor: pointer;
+	display: flex; align-items: center; justify-content: center;
+	box-shadow: var(--shadow-pop);
+	transition: transform .15s ease, background .15s ease;
+}
+.acdq-chat-toggle:hover{ background: var(--accent-dark); transform: translateY(-2px); }
+.acdq-chat-panel{
+	position: absolute; right: 0; bottom: 68px;
+	width: min(340px, calc(100vw - 40px)); height: min(460px, calc(100vh - 120px));
+	background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-pop);
+	display: flex; flex-direction: column; overflow: hidden;
+}
+.acdq-chat-header{
+	display: flex; align-items: center; justify-content: space-between;
+	padding: 14px 16px; background: var(--primary); color: #fff;
+	font-weight: 600; font-size: .92rem;
+}
+.acdq-chat-close{
+	background: none; border: none; color: #fff; font-size: 1.3rem;
+	line-height: 1; cursor: pointer; padding: 0 2px; opacity: .8;
+}
+.acdq-chat-close:hover{ opacity: 1; }
+.acdq-chat-messages{
+	flex: 1; overflow-y: auto; padding: 14px 16px;
+	display: flex; flex-direction: column; gap: 10px;
+	background: var(--bg);
+}
+.acdq-chat-msg{
+	max-width: 82%; padding: .6em .85em; border-radius: var(--radius-md);
+	font-size: .87rem; line-height: 1.45; word-wrap: break-word;
+}
+.acdq-chat-msg-bot{
+	align-self: flex-start; background: var(--surface); border: 1px solid var(--line); color: var(--ink);
+}
+.acdq-chat-msg-user{
+	align-self: flex-end; background: var(--accent); color: #fff;
+}
+.acdq-chat-typing{ color: var(--ink-soft); font-style: italic; }
+.acdq-chat-form{
+	display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); background: var(--surface);
+}
+.acdq-chat-form input{
+	flex: 1; border: 1px solid var(--line); border-radius: 999px;
+	padding: .6em 1em; font-family: var(--font-body); font-size: .87rem; color: var(--ink);
+}
+.acdq-chat-form button{
+	width: 38px; height: 38px; border-radius: 50%; border: none;
+	background: var(--accent); color: #fff; cursor: pointer;
+	display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.acdq-chat-form button:hover{ background: var(--accent-dark); }
+@media (max-width: 480px){
+	.acdq-chat{ right: 12px; bottom: 12px; }
+	.acdq-chat-panel{ right: -4px; }
+}
 .clinic-reviews .form-submit input[type="submit"]:hover{ background: var(--accent-dark); }

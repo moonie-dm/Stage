@@ -9,7 +9,7 @@
 
 if ( ! defined( '_S_VERSION' ) ) {
 	// Replace the version number of the theme on each release.
-	define( '_S_VERSION', '1.6.0' );
+	define( '_S_VERSION', '1.7.0' );
 }
 
 /**
@@ -171,8 +171,44 @@ function dhia_scripts() {
 			'search'  => is_search() ? get_search_query() : '',
 		) );
 	}
+
+	// AI features: entirely absent (no script enqueued, no nonce issued) unless
+	// ACDQ_ANTHROPIC_KEY is configured — see inc/ai-helpers.php.
+	if ( acdq_ai_enabled() ) {
+		if ( is_front_page() ) {
+			wp_enqueue_script( 'acdq-ai-search', get_template_directory_uri() . '/assets/js/ai-search.js', array(), _S_VERSION, true );
+			wp_localize_script( 'acdq-ai-search', 'acdqAiSearch', array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'acdq_ai_search' ),
+			) );
+		}
+
+		wp_enqueue_script( 'acdq-ai-chatbot', get_template_directory_uri() . '/assets/js/ai-chatbot.js', array(), _S_VERSION, true );
+		wp_localize_script( 'acdq-ai-chatbot', 'acdqAiChat', array(
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+			'nonce'   => wp_create_nonce( 'acdq_ai_chat' ),
+		) );
+	}
 }
 add_action( 'wp_enqueue_scripts', 'dhia_scripts' );
+
+/**
+ * Admin-only: "Améliorer avec l'IA" script, only on the clinique edit screen,
+ * only when the AI key is configured, only for users who can edit posts.
+ */
+function acdq_ai_admin_scripts( $hook ) {
+	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) return;
+	$screen = get_current_screen();
+	if ( ! $screen || 'clinique' !== $screen->post_type ) return;
+	if ( ! acdq_ai_enabled() || ! current_user_can( 'edit_posts' ) ) return;
+
+	wp_enqueue_script( 'acdq-ai-admin-description', get_template_directory_uri() . '/assets/js/ai-admin-description.js', array(), _S_VERSION, true );
+	wp_localize_script( 'acdq-ai-admin-description', 'acdqAiAdmin', array(
+		'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+		'nonce'   => wp_create_nonce( 'acdq_ai_improve' ),
+	) );
+}
+add_action( 'admin_enqueue_scripts', 'acdq_ai_admin_scripts' );
 
 /**
  * This site's only searchable content is the clinic directory, so route every
@@ -187,6 +223,16 @@ add_action( 'pre_get_posts', 'acdq_search_clinics_only' );
 
 require get_template_directory() . '/inc/ajax-filters.php';
 require get_template_directory() . '/inc/acf-fields.php';
+
+/**
+ * AI features (Claude API). Each file is always loaded, but every hook it
+ * registers self-gates on acdq_ai_enabled() — with no ACDQ_ANTHROPIC_KEY
+ * defined in wp-config.php, nothing here renders, enqueues, or responds.
+ */
+require get_template_directory() . '/inc/ai-helpers.php';
+require get_template_directory() . '/inc/ai-search.php';
+require get_template_directory() . '/inc/ai-chatbot.php';
+require get_template_directory() . '/inc/ai-admin-description.php';
 /**
  * Implement the Custom Header feature.
  */
