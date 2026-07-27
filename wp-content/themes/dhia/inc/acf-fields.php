@@ -71,9 +71,11 @@ function acdq_get_gallery_photos( $post_id = null ) {
 }
 
 /**
- * All photos to show on a clinic's own page: the gallery if it has one,
- * otherwise the featured image as a single-photo fallback. Empty array
- * means "no real photo exists" — callers should show the branded placeholder.
+ * Photos for the clinic-page carousel: gallery photos only. Deliberately does
+ * NOT fall back to the featured image — that image is often a small logo
+ * (from CSV imports especially), and stretching a logo to fill a large photo
+ * slot looks broken rather than "no photo yet". Empty array means show the
+ * branded placeholder instead.
  */
 function acdq_get_clinic_photos( $post_id = null, $size = 'large' ) {
 	if ( ! $post_id ) $post_id = get_the_ID();
@@ -82,13 +84,6 @@ function acdq_get_clinic_photos( $post_id = null, $size = 'large' ) {
 	foreach ( acdq_get_gallery_photos( $post_id ) as $img ) {
 		$url = ! empty( $img['sizes'][ $size ] ) ? $img['sizes'][ $size ] : $img['url'];
 		$photos[] = array( 'url' => $url, 'alt' => ! empty( $img['alt'] ) ? $img['alt'] : get_the_title( $post_id ) );
-	}
-
-	if ( ! $photos && has_post_thumbnail( $post_id ) ) {
-		$src = wp_get_attachment_image_src( get_post_thumbnail_id( $post_id ), $size );
-		if ( $src ) {
-			$photos[] = array( 'url' => $src[0], 'alt' => get_the_title( $post_id ) );
-		}
 	}
 
 	return $photos;
