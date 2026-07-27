@@ -9,7 +9,7 @@
 
 if ( ! defined( '_S_VERSION' ) ) {
 	// Replace the version number of the theme on each release.
-	define( '_S_VERSION', '1.4.0' );
+	define( '_S_VERSION', '1.5.0' );
 }
 
 /**
@@ -147,6 +147,10 @@ function dhia_scripts() {
 		wp_enqueue_script( 'comment-reply' );
 	}
 
+	if ( is_singular( 'clinique' ) ) {
+		wp_enqueue_script( 'acdq-gallery', get_template_directory_uri() . '/assets/js/gallery.js', array(), _S_VERSION, true );
+	}
+
 	$is_clinic_listing = is_post_type_archive( 'clinique' ) || is_tax( array( 'region', 'specialite' ) ) || is_search();
 
 	if ( $is_clinic_listing ) {
@@ -178,6 +182,7 @@ function acdq_search_clinics_only( $query ) {
 add_action( 'pre_get_posts', 'acdq_search_clinics_only' );
 
 require get_template_directory() . '/inc/ajax-filters.php';
+require get_template_directory() . '/inc/acf-fields.php';
 /**
  * Implement the Custom Header feature.
  */

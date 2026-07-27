@@ -14,13 +14,42 @@ $urgence_url  = $urgence_term ? get_term_link( $urgence_term ) : add_query_arg( 
 <!-- HERO + RECHERCHE -->
 <section class="hero-search">
 	<div class="container hero-search-inner">
-		<span class="eyebrow"><?php echo esc_html( $total_cliniques ); ?> cliniques référencées au Québec</span>
-		<h1>Trouvez un dentiste, région par région</h1>
-		<p class="hero-search-sub">Comparez les cliniques, consultez les disponibilités et contactez-les directement — sans intermédiaire.</p>
-		<form class="search-bar" action="<?php echo esc_url( $archive_url ); ?>" method="get">
-			<input type="search" name="s" placeholder="Nom, ville ou spécialité">
-			<button type="submit" class="btn btn-primary">Rechercher</button>
-		</form>
+		<div class="hero-search-copy">
+			<span class="eyebrow"><?php echo esc_html( $total_cliniques ); ?> cliniques référencées au Québec</span>
+			<h1>Trouvez un dentiste, région par région</h1>
+			<p class="hero-search-sub">Comparez les cliniques, consultez les disponibilités et contactez-les directement — sans intermédiaire.</p>
+			<form class="search-bar" action="<?php echo esc_url( $archive_url ); ?>" method="get">
+				<input type="search" name="s" placeholder="Nom, ville ou spécialité">
+				<button type="submit" class="btn btn-primary">Rechercher</button>
+			</form>
+		</div>
+
+		<div class="hero-search-art" aria-hidden="true">
+			<svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<rect x="24" y="24" width="352" height="352" rx="130" fill="var(--accent-tint)"/>
+				<circle cx="70" cy="330" r="7" fill="var(--accent)" opacity=".5"/>
+				<circle cx="340" cy="90" r="5" fill="var(--accent-dark)" opacity=".5"/>
+				<circle cx="330" cy="320" r="4" fill="var(--primary)" opacity=".3"/>
+
+				<!-- abstract tooth -->
+				<path d="M200 96c-46 0-78 34-78 79 0 46 16 88 38 112 6 7 15 7 18-3 5-16 12-26 22-26s17 10 22 26c3 10 12 10 18 3 22-24 38-66 38-112 0-45-32-79-78-79Z"
+					fill="var(--surface)" stroke="var(--primary)" stroke-width="7" stroke-linejoin="round"/>
+
+				<!-- floating location-pin chip, echoing the directory's map markers -->
+				<g transform="translate(64 96)">
+					<circle cx="28" cy="28" r="28" fill="var(--accent)"/>
+					<path d="M28 14c-7.7 0-14 6-14 14 0 10 14 24 14 24s14-14 14-24c0-8-6.3-14-14-14Z" fill="var(--surface)"/>
+					<circle cx="28" cy="27" r="4.5" fill="var(--accent)"/>
+				</g>
+
+				<!-- floating rating chip -->
+				<g transform="translate(272 250)">
+					<rect x="0" y="0" width="92" height="40" rx="20" fill="var(--surface)" stroke="var(--line)" stroke-width="1.5"/>
+					<path d="M20 10l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8L20 10Z" fill="var(--warm)"/>
+					<text x="38" y="25" font-family="Inter, sans-serif" font-size="15" font-weight="600" fill="var(--ink)">4,8</text>
+				</g>
+			</svg>
+		</div>
 	</div>
 	<div class="hero-pills">
 		<a class="filter-chip" href="<?php echo esc_url( add_query_arg( 'f', 'open', $archive_url ) ); ?>">Ouvert maintenant</a>
@@ -80,6 +109,9 @@ $urgence_url  = $urgence_term ? get_term_link( $urgence_term ) : add_query_arg( 
 		$regions = get_terms( array( 'taxonomy' => 'region', 'hide_empty' => false, 'orderby' => 'name' ) );
 		if ( ! is_wp_error( $regions ) ) foreach ( $regions as $region ) : ?>
 			<a class="region-tile" href="<?php echo esc_url( get_term_link( $region ) ); ?>">
+				<span class="region-tile-icon" aria-hidden="true">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.2 7-12.5S16.4 2 12 2 5 4.6 5 9.5 12 22 12 22Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="1.6"/></svg>
+				</span>
 				<span class="region-tile-name"><?php echo esc_html( $region->name ); ?></span>
 				<span class="region-tile-count acdq-mono"><?php echo esc_html( $region->count ); ?> cliniques</span>
 			</a>

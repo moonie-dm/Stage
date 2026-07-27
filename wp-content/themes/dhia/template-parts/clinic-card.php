@@ -3,12 +3,13 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 $accepte = get_field( 'accepte_nouveaux_patients' );
 $statut  = acdq_get_open_status();
 $tel     = get_field( 'telephone' );
+$image   = function_exists( 'acdq_get_card_image' ) ? acdq_get_card_image( get_the_ID() ) : null;
 ?>
 <article class="clinic-card">
 	<div class="clinic-card-media">
 		<a href="<?php the_permalink(); ?>">
-			<?php if ( has_post_thumbnail() ) : ?>
-				<?php the_post_thumbnail( 'medium' ); ?>
+			<?php if ( $image ) : ?>
+				<img src="<?php echo esc_url( $image['url'] ); ?>" alt="<?php echo esc_attr( $image['alt'] ); ?>" loading="lazy">
 			<?php else : ?>
 				<div class="clinic-card-placeholder" aria-hidden="true">
 					<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 2 4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4Z" stroke="currentColor" stroke-width="1.5"/></svg>

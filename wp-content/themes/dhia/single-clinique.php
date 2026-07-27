@@ -10,6 +10,7 @@ while ( have_posts() ) : the_post();
 	$tel         = get_field( 'telephone' );
 	$site        = get_field( 'site_web' );
 	$rating      = function_exists( 'acdq_get_average_rating' ) ? acdq_get_average_rating( get_the_ID() ) : array( 'average' => 0, 'count' => 0 );
+	$photos      = function_exists( 'acdq_get_clinic_photos' ) ? acdq_get_clinic_photos( get_the_ID() ) : array();
 	?>
 
 	<!-- HERO -->
@@ -54,9 +55,41 @@ while ( have_posts() ) : the_post();
 				<?php endif; ?>
 			</div>
 
-			<?php if ( has_post_thumbnail() ) : ?>
-				<div class="clinic-hero-media"><?php the_post_thumbnail( 'large' ); ?></div>
-			<?php endif; ?>
+			<div class="clinic-hero-media">
+				<?php if ( $photos ) : ?>
+					<div class="clinic-gallery">
+						<div class="clinic-gallery-viewport">
+							<div class="clinic-gallery-track">
+								<?php foreach ( $photos as $photo ) : ?>
+									<div class="clinic-gallery-slide">
+										<img src="<?php echo esc_url( $photo['url'] ); ?>" alt="<?php echo esc_attr( $photo['alt'] ); ?>" loading="lazy">
+									</div>
+								<?php endforeach; ?>
+							</div>
+							<?php if ( count( $photos ) > 1 ) : ?>
+								<button type="button" class="clinic-gallery-arrow clinic-gallery-prev" aria-label="Photo précédente">
+									<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+								</button>
+								<button type="button" class="clinic-gallery-arrow clinic-gallery-next" aria-label="Photo suivante">
+									<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m9 5 7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+								</button>
+							<?php endif; ?>
+						</div>
+						<?php if ( count( $photos ) > 1 ) : ?>
+							<div class="clinic-gallery-dots">
+								<?php foreach ( $photos as $i => $photo ) : ?>
+									<button type="button" class="clinic-gallery-dot <?php echo 0 === $i ? 'is-active' : ''; ?>" aria-label="Aller à la photo <?php echo esc_attr( $i + 1 ); ?>"></button>
+								<?php endforeach; ?>
+							</div>
+						<?php endif; ?>
+					</div>
+				<?php else : ?>
+					<div class="clinic-gallery-empty">
+						<svg viewBox="0 0 24 24" fill="none"><path d="M12 2 4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4Z" stroke="currentColor" stroke-width="1.4"/></svg>
+						<span>Photos à venir</span>
+					</div>
+				<?php endif; ?>
+			</div>
 		</div>
 	</section>
 
