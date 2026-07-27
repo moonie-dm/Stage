@@ -43,16 +43,30 @@ while ( have_posts() ) : the_post();
 						<?php if ( $site ) : ?> · <a href="<?php echo esc_url( $site ); ?>" target="_blank" rel="noopener">Site web</a><?php endif; ?>
 					</p>
 				<?php endif; ?>
-			</div>
 
-			<div class="clinic-hero-actions">
-				<a href="#acdq-booking" class="btn btn-primary">Demandez un rendez-vous</a>
-				<?php if ( $accepte ) : ?>
-					<div class="trust-box">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2 4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4Z" stroke="currentColor" stroke-width="1.6"/></svg>
-						Accepte de nouveaux patients
-					</div>
-				<?php endif; ?>
+				<div class="clinic-hero-actions">
+					<a href="#acdq-booking" class="btn btn-primary">Demandez un rendez-vous</a>
+					<?php if ( $accepte ) : ?>
+						<div class="trust-box">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2 4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4Z" stroke="currentColor" stroke-width="1.6"/></svg>
+							Accepte de nouveaux patients
+						</div>
+					<?php endif; ?>
+				</div>
+
+				<div class="clinic-share">
+					<span class="clinic-share-label">Partager :</span>
+					<a class="clinic-share-btn" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo rawurlencode( get_permalink() ); ?>" aria-label="Partager sur Facebook">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 8.5h2V5.3c-.3 0-1.5-.1-2.9-.1-2.9 0-4.8 1.7-4.8 4.9v2.6H6.4V16h2.9v8h3.4v-8h2.8l.4-3.3h-3.2V10c0-.9.3-1.5 1.3-1.5Z" fill="currentColor"/></svg>
+					</a>
+					<a class="clinic-share-btn" href="mailto:?subject=<?php echo esc_attr( rawurlencode( get_the_title() ) ); ?>&amp;body=<?php echo esc_attr( rawurlencode( get_permalink() ) ); ?>" aria-label="Partager par courriel">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 6h16v12H4V6Z" stroke="currentColor" stroke-width="1.6"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					</a>
+					<button type="button" class="clinic-share-btn clinic-share-copy" data-url="<?php echo esc_url( get_permalink() ); ?>" aria-label="Copier le lien">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M5 15V6a1 1 0 0 1 1-1h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+						<span class="clinic-share-copy-label">Copier le lien</span>
+					</button>
+				</div>
 			</div>
 
 			<div class="clinic-hero-media">
@@ -95,14 +109,23 @@ while ( have_posts() ) : the_post();
 
 	<div class="container clinic-body">
 		<!-- REVIEWS -->
-		<section class="clinic-panel">
+		<section class="clinic-panel clinic-reviews">
 			<h2>Avis : <?php the_title(); ?></h2>
 			<?php if ( $rating['count'] > 0 ) : ?>
 				<p class="clinic-panel-lead">★★★★★ <?php echo esc_html( $rating['average'] ); ?> sur 5 (<?php echo esc_html( $rating['count'] ); ?> avis)</p>
 			<?php else : ?>
-				<p class="clinic-panel-empty">Aucun avis pour l'instant.</p>
+				<p class="clinic-panel-empty">Aucun avis pour l'instant. Soyez le premier à laisser un avis.</p>
 			<?php endif; ?>
+			<?php comments_template(); ?>
 		</section>
+
+		<!-- EMPLACEMENT -->
+		<?php if ( get_field( 'latitude' ) && get_field( 'longitude' ) ) : ?>
+		<section class="clinic-panel">
+			<h2>Emplacement</h2>
+			<div id="acdq-clinic-map" class="clinic-map" data-lat="<?php echo esc_attr( get_field( 'latitude' ) ); ?>" data-lng="<?php echo esc_attr( get_field( 'longitude' ) ); ?>"></div>
+		</section>
+		<?php endif; ?>
 
 		<!-- SERVICES -->
 		<section class="clinic-panel">

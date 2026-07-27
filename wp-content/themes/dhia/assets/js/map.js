@@ -162,6 +162,35 @@
 		}
 	}
 
+	/**
+	 * Small single-marker map for a clinic's own page (#acdq-clinic-map), reusing
+	 * the same tiles/pin styling but with none of the directory's scroll-sync logic.
+	 */
+	function initClinicMap() {
+		var el = document.getElementById( 'acdq-clinic-map' );
+		if ( ! el || typeof L === 'undefined' ) return;
+
+		var lat = parseFloat( el.getAttribute( 'data-lat' ) );
+		var lng = parseFloat( el.getAttribute( 'data-lng' ) );
+		if ( isNaN( lat ) || isNaN( lng ) ) return;
+
+		var clinicMap = L.map( el, { scrollWheelZoom: false } ).setView( [ lat, lng ], 15 );
+		L.tileLayer( 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+			subdomains: 'abcd',
+			maxZoom: 19,
+		} ).addTo( clinicMap );
+
+		var icon = L.divIcon({
+			className: 'acdq-marker',
+			html: '<div class="acdq-marker-pin"></div>',
+			iconSize: [26, 26],
+			iconAnchor: [13, 26],
+		});
+		L.marker( [ lat, lng ], { icon: icon } ).addTo( clinicMap );
+	}
+
 	window.acdqInitMap = initMap;
 	document.addEventListener( 'DOMContentLoaded', initMap );
+	document.addEventListener( 'DOMContentLoaded', initClinicMap );
 } )();

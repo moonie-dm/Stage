@@ -9,7 +9,7 @@
 
 if ( ! defined( '_S_VERSION' ) ) {
 	// Replace the version number of the theme on each release.
-	define( '_S_VERSION', '1.5.0' );
+	define( '_S_VERSION', '1.6.0' );
 }
 
 /**
@@ -149,14 +149,18 @@ function dhia_scripts() {
 
 	if ( is_singular( 'clinique' ) ) {
 		wp_enqueue_script( 'acdq-gallery', get_template_directory_uri() . '/assets/js/gallery.js', array(), _S_VERSION, true );
+		wp_enqueue_script( 'acdq-share', get_template_directory_uri() . '/assets/js/share.js', array(), _S_VERSION, true );
 	}
 
 	$is_clinic_listing = is_post_type_archive( 'clinique' ) || is_tax( array( 'region', 'specialite' ) ) || is_search();
+	$needs_map         = $is_clinic_listing || is_singular( 'clinique' );
 
-	if ( $is_clinic_listing ) {
+	if ( $needs_map ) {
 		wp_enqueue_style( 'acdq-leaflet', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', array(), '1.9.4' );
 		wp_enqueue_script( 'acdq-leaflet', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', array(), '1.9.4', true );
 		wp_enqueue_script( 'acdq-map', get_template_directory_uri() . '/assets/js/map.js', array( 'acdq-leaflet' ), _S_VERSION, true );
+	}
+	if ( $is_clinic_listing ) {
 		wp_enqueue_script( 'acdq-distance', get_template_directory_uri() . '/assets/js/distance.js', array(), _S_VERSION, true );
 	}
 	if ( $is_clinic_listing ) {
