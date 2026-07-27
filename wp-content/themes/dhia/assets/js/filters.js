@@ -65,16 +65,33 @@
 			} );
 		}
 
-		// Pre-select a filter when arriving from a hero quick-filter pill (?f=open|accepting).
-		var presetFilter = new URLSearchParams( window.location.search ).get( 'f' );
+		// Pre-select a filter when arriving from a hero quick-filter pill (?f=open|accepting)
+		// or from the AI search classifier (?specialite=slug — see inc/ai-search.php).
+		var presetParams = new URLSearchParams( window.location.search );
+		var presetFilter = presetParams.get( 'f' );
+		var presetSpecialite = presetParams.get( 'specialite' );
+		var needsPresetFetch = false;
+
 		if ( presetFilter === 'open' && openBtn ) {
 			state.open = true;
 			openBtn.classList.add( 'is-active' );
+			needsPresetFetch = true;
 		} else if ( presetFilter === 'accepting' && acceptBtn ) {
 			state.accepting = true;
 			acceptBtn.classList.add( 'is-active' );
+			needsPresetFetch = true;
 		}
-		if ( presetFilter === 'open' || presetFilter === 'accepting' ) {
+		if ( presetSpecialite && specSelect ) {
+			var hasOption = Array.prototype.some.call( specSelect.options, function ( opt ) {
+				return opt.value === presetSpecialite;
+			} );
+			if ( hasOption ) {
+				specSelect.value = presetSpecialite;
+				state.specialite = presetSpecialite;
+				needsPresetFetch = true;
+			}
+		}
+		if ( needsPresetFetch ) {
 			fetchResults();
 		}
 

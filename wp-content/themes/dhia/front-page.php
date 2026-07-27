@@ -18,8 +18,8 @@ $urgence_url  = $urgence_term ? get_term_link( $urgence_term ) : add_query_arg( 
 			<span class="eyebrow"><?php echo esc_html( $total_cliniques ); ?> cliniques référencées au Québec</span>
 			<h1>Trouvez un dentiste, région par région</h1>
 			<p class="hero-search-sub">Comparez les cliniques, consultez les disponibilités et contactez-les directement — sans intermédiaire.</p>
-			<form class="search-bar" action="<?php echo esc_url( $archive_url ); ?>" method="get">
-				<input type="search" name="s" placeholder="Nom, ville ou spécialité">
+			<form class="search-bar" id="acdq-search-form" action="<?php echo esc_url( $archive_url ); ?>" method="get">
+				<input type="search" name="s" placeholder="Nom, ville ou spécialité — ou décrivez votre besoin">
 				<button type="submit" class="btn btn-primary">Rechercher</button>
 			</form>
 		</div>
