@@ -28,13 +28,30 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 define( 'ACDQ_AI_MODEL', 'claude-haiku-4-5' );
 
 /**
- * True once ACDQ_ANTHROPIC_KEY is defined (in wp-config.php — never in the
- * database or front-end JS). Every AI feature checks this before registering
- * its AJAX handler or enqueueing its JS, so the whole feature set is a no-op
- * — not an error — on a site that hasn't configured the key.
+ * The Anthropic API key, preferring the wp-config.php constant
+ * (ACDQ_ANTHROPIC_KEY) when it's defined — never in the database or
+ * front-end JS, the safest option — and falling back to the
+ * `acdq_anthropic_key` option (see inc/ai-settings.php) for sites where
+ * whoever's setting this up only has wp-admin access, not the filesystem.
+ * The constant always wins when both are set, so a site can move to the
+ * safer storage later just by defining the constant.
+ */
+function acdq_ai_get_key() {
+	if ( defined( 'ACDQ_ANTHROPIC_KEY' ) && ACDQ_ANTHROPIC_KEY ) {
+		return ACDQ_ANTHROPIC_KEY;
+	}
+	$key = get_option( 'acdq_anthropic_key', '' );
+	return is_string( $key ) ? trim( $key ) : '';
+}
+
+/**
+ * True once an API key is available from either source above. Every AI
+ * feature checks this before registering its AJAX handler or enqueueing its
+ * JS, so the whole feature set is a no-op — not an error — on a site that
+ * hasn't configured a key yet.
  */
 function acdq_ai_enabled() {
-	return defined( 'ACDQ_ANTHROPIC_KEY' ) && ACDQ_ANTHROPIC_KEY;
+	return '' !== acdq_ai_get_key();
 }
 
 /**
@@ -115,7 +132,7 @@ function acdq_call_claude( $system_prompt, $messages, $args = array() ) {
 		'timeout' => 12,
 		'headers' => array(
 			'content-type'      => 'application/json',
-			'x-api-key'         => ACDQ_ANTHROPIC_KEY,
+			'x-api-key'         => acdq_ai_get_key(),
 			'anthropic-version' => '2023-06-01',
 		),
 		'body' => wp_json_encode( $body ),

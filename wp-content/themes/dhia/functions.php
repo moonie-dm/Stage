@@ -230,6 +230,7 @@ require get_template_directory() . '/inc/acf-fields.php';
  * defined in wp-config.php, nothing here renders, enqueues, or responds.
  */
 require get_template_directory() . '/inc/ai-helpers.php';
+require get_template_directory() . '/inc/ai-settings.php';
 require get_template_directory() . '/inc/ai-search.php';
 require get_template_directory() . '/inc/ai-chatbot.php';
 require get_template_directory() . '/inc/ai-admin-description.php';
