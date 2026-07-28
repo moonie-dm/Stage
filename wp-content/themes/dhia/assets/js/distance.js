@@ -8,33 +8,27 @@
 		return R * 2 * Math.atan2( Math.sqrt( a ), Math.sqrt( 1 - a ) );
 	}
 
-	var userPos = null;
-
-	function applyDistances() {
-		if ( ! userPos ) return;
+	// Paints distance badges using a position the caller already has —
+	// filters.js requests geolocation itself, only when the visitor picks
+	// "Plus proche", and passes the result in here. This used to request its
+	// own location on every page load via DOMContentLoaded, which both
+	// prompted for the browser's location permission before the visitor
+	// asked for anything, and kept showing (often wildly inaccurate, e.g.
+	// IP-based) distance badges under every sort mode, not just "Plus
+	// proche" — because that stored position never got cleared or re-checked
+	// against the current sort.
+	function applyDistances( userLat, userLng ) {
+		if ( typeof userLat !== 'number' || typeof userLng !== 'number' ) return;
 		document.querySelectorAll( '.clinic-row' ).forEach( function ( row ) {
 			var lat = parseFloat( row.getAttribute( 'data-lat' ) );
 			var lng = parseFloat( row.getAttribute( 'data-lng' ) );
 			var badge = row.querySelector( '.distance-badge' );
 			if ( isNaN( lat ) || isNaN( lng ) || ! badge ) return;
-			var dist = haversine( userPos.lat, userPos.lng, lat, lng );
+			var dist = haversine( userLat, userLng, lat, lng );
 			badge.textContent = dist.toFixed( 1 ) + ' km';
 			badge.hidden = false;
 		} );
 	}
 
-	function initDistance() {
-		if ( userPos ) {
-			applyDistances();
-			return;
-		}
-		if ( ! navigator.geolocation ) return;
-		navigator.geolocation.getCurrentPosition( function ( pos ) {
-			userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-			applyDistances();
-		}, function () { /* location denied — badges just stay hidden */ } );
-	}
-
-	window.acdqInitDistance = initDistance;
-	document.addEventListener( 'DOMContentLoaded', initDistance );
+	window.acdqInitDistance = applyDistances;
 } )();

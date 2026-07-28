@@ -1654,6 +1654,11 @@ main{ max-width: var(--container); margin: 0 auto; padding: 40px 24px 80px; }
 	box-shadow: var(--shadow-pop);
 	display: flex; flex-direction: column; overflow: hidden;
 }
+/* [hidden] alone has the same specificity as .acdq-chat-panel and this theme's
+   base [hidden] rule (style.css ~L374) has no !important, so without this the
+   panel's own `display: flex` above wins on source order and the close
+   button's `panel.hidden = true` never actually hides anything. */
+.acdq-chat-panel[hidden]{ display: none; }
 .acdq-chat-header{
 	display: flex; align-items: center; justify-content: space-between;
 	padding: 14px 16px; background: var(--primary); color: #fff;

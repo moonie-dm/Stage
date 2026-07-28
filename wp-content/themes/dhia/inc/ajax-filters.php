@@ -5,6 +5,7 @@ function acdq_filter_cliniques() {
 	check_ajax_referer( 'acdq_nonce', 'nonce' );
 
 	$specialite = isset( $_POST['specialite'] ) ? sanitize_text_field( wp_unslash( $_POST['specialite'] ) ) : '';
+	$region     = isset( $_POST['region'] ) ? sanitize_text_field( wp_unslash( $_POST['region'] ) ) : '';
 	$open_only  = isset( $_POST['open'] ) && $_POST['open'] === '1';
 	$accepting  = isset( $_POST['accepting'] ) && $_POST['accepting'] === '1';
 	$sort       = isset( $_POST['sort'] ) ? sanitize_text_field( wp_unslash( $_POST['sort'] ) ) : 'date';
@@ -29,8 +30,18 @@ function acdq_filter_cliniques() {
 	if ( $search ) {
 		$args['s'] = $search;
 	}
+	$tax_query = array();
 	if ( $specialite ) {
-		$args['tax_query'] = array( array( 'taxonomy' => 'specialite', 'field' => 'slug', 'terms' => $specialite ) );
+		$tax_query[] = array( 'taxonomy' => 'specialite', 'field' => 'slug', 'terms' => $specialite );
+	}
+	if ( $region ) {
+		$tax_query[] = array( 'taxonomy' => 'region', 'field' => 'slug', 'terms' => $region );
+	}
+	if ( $tax_query ) {
+		if ( count( $tax_query ) > 1 ) {
+			$tax_query['relation'] = 'AND';
+		}
+		$args['tax_query'] = $tax_query;
 	}
 	if ( $sort === 'title' ) {
 		$args['orderby'] = 'title';

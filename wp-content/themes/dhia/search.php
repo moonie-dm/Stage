@@ -2,6 +2,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 get_header();
 $specialites = get_terms( array( 'taxonomy' => 'specialite', 'hide_empty' => true ) );
+$regions     = get_terms( array( 'taxonomy' => 'region', 'hide_empty' => true ) );
 $search_term = get_search_query();
 ?>
 
@@ -13,14 +14,20 @@ $search_term = get_search_query();
 		<div class="filter-chips">
 			<button type="button" class="filter-chip" data-filter="open">Ouvert</button>
 			<button type="button" class="filter-chip" data-filter="accepting">Nouveaux patients</button>
-			<select class="filter-select">
+			<select class="filter-select" data-role="specialite">
 				<option value="">Toutes spécialités</option>
 				<?php if ( ! is_wp_error( $specialites ) ) foreach ( $specialites as $s ) : ?>
 					<option value="<?php echo esc_attr( $s->slug ); ?>"><?php echo esc_html( $s->name ); ?></option>
 				<?php endforeach; ?>
 			</select>
+			<select class="filter-select" data-role="region">
+				<option value="">Toutes les régions</option>
+				<?php if ( ! is_wp_error( $regions ) ) foreach ( $regions as $r ) : ?>
+					<option value="<?php echo esc_attr( $r->slug ); ?>"><?php echo esc_html( $r->name ); ?></option>
+				<?php endforeach; ?>
+			</select>
 			<span class="sort-label">Trier
-				<select class="filter-select">
+				<select class="filter-select" data-role="sort">
 					<option>Plus récent</option>
 					<option>Nom (A-Z)</option>
 					<option>Plus proche</option>

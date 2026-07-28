@@ -6,13 +6,17 @@
 
 		var openBtn = document.querySelector( '.filter-chip[data-filter="open"]' );
 		var acceptBtn = document.querySelector( '.filter-chip[data-filter="accepting"]' );
-		var specSelect = document.querySelector( '.filter-select' );
-		var sortSelect = document.querySelectorAll( '.filter-select' )[1];
+		// Selected by data-role rather than position — with three selects now
+		// (specialty, region, sort) a positional index would silently break
+		// every time one gets added, reordered, or removed.
+		var specSelect = document.querySelector( '[data-role="specialite"]' );
+		var regionSelect = document.querySelector( '[data-role="region"]' );
+		var sortSelect = document.querySelector( '[data-role="sort"]' );
 
 		// Carries the current search term (if any) through every subsequent chip/sort refresh,
 		// so filtering on /?s=... results doesn't silently drop back to the full directory.
 		var state = {
-			open: false, accepting: false, specialite: '', sort: 'date',
+			open: false, accepting: false, specialite: '', region: '', sort: 'date',
 			search: acdqFilters.search || '', userLat: null, userLng: null,
 		};
 
@@ -29,6 +33,12 @@
 		if ( specSelect ) {
 			specSelect.addEventListener( 'change', function () {
 				state.specialite = specSelect.value;
+				fetchResults();
+			} );
+		}
+		if ( regionSelect ) {
+			regionSelect.addEventListener( 'change', function () {
+				state.region = regionSelect.value;
 				fetchResults();
 			} );
 		}
@@ -70,6 +80,7 @@
 		var presetParams = new URLSearchParams( window.location.search );
 		var presetFilter = presetParams.get( 'f' );
 		var presetSpecialite = presetParams.get( 'specialite' );
+		var presetRegion = presetParams.get( 'region' );
 		var needsPresetFetch = false;
 
 		if ( presetFilter === 'open' && openBtn ) {
@@ -91,6 +102,16 @@
 				needsPresetFetch = true;
 			}
 		}
+		if ( presetRegion && regionSelect ) {
+			var hasRegionOption = Array.prototype.some.call( regionSelect.options, function ( opt ) {
+				return opt.value === presetRegion;
+			} );
+			if ( hasRegionOption ) {
+				regionSelect.value = presetRegion;
+				state.region = presetRegion;
+				needsPresetFetch = true;
+			}
+		}
 		if ( needsPresetFetch ) {
 			fetchResults();
 		}
@@ -101,6 +122,7 @@
 			params.set( 'action', 'acdq_filter_cliniques' );
 			params.set( 'nonce', acdqFilters.nonce );
 			params.set( 'specialite', state.specialite );
+			params.set( 'region', state.region );
 			params.set( 'open', state.open ? '1' : '0' );
 			params.set( 'accepting', state.accepting ? '1' : '0' );
 			params.set( 'sort', state.sort );
@@ -120,7 +142,12 @@
 					if ( res.success ) {
 						list.innerHTML = res.data.html;
 						if ( window.acdqInitMap ) window.acdqInitMap();
-						if ( window.acdqInitDistance ) window.acdqInitDistance();
+						// Only paint distance badges under "Plus proche" — the fresh
+						// rows above already come with their badge hidden by default,
+						// so simply not calling this the rest of the time is enough.
+						if ( state.sort === 'distance' && window.acdqInitDistance && state.userLat !== null ) {
+							window.acdqInitDistance( state.userLat, state.userLng );
+						}
 					}
 				} )
 				.finally( function () { list.style.opacity = '1'; } );
