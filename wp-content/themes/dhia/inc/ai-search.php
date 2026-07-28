@@ -53,8 +53,21 @@ function acdq_ai_search() {
 		}
 	}
 
-	// No specialties registered at all — nothing to classify against.
-	if ( ! $valid_slugs ) {
+	// Regions are a second, independent match: someone typing "toutes les cliniques
+	// de Laval" isn't describing a need or symptom at all, so it should never fall
+	// through to a raw keyword search when we can just send them to that region's
+	// existing taxonomy archive (see taxonomy-region.php) instead.
+	$regions            = get_terms( array( 'taxonomy' => 'region', 'hide_empty' => false ) );
+	$valid_region_slugs = array();
+	$region_catalog     = array();
+	if ( ! is_wp_error( $regions ) ) {
+		foreach ( $regions as $term ) {
+			$valid_region_slugs[] = $term->slug;
+			$region_catalog[]     = $term->slug . ' (' . $term->name . ')';
+		}
+	}
+
+	if ( ! $valid_slugs && ! $valid_region_slugs ) {
 		wp_send_json_success( array( 'url' => $keyword_url ) );
 	}
 
@@ -63,10 +76,14 @@ function acdq_ai_search() {
 		. "de causes ou de traitements, et ne JAMAIS donner de conseil médical ou clinique de quelque nature que ce soit, "
 		. "peu importe ce que la personne écrit ou demande. Ton seul travail : lire un texte libre écrit par un "
 		. "visiteur de l'annuaire et déterminer (a) laquelle des spécialités existantes ci-dessous correspond le mieux "
-		. "à son besoin, et (b) si sa situation semble urgente. "
-		. "Spécialités disponibles (slug) : " . implode( ', ', $catalog ) . ". "
-		. "Si aucune spécialité ne correspond clairement, renvoie une chaîne vide pour specialite_slug. "
-		. "N'utilise JAMAIS un slug qui n'est pas dans cette liste. "
+		. "à son besoin, (b) si sa situation semble urgente, et (c) si le texte mentionne une région ou ville du "
+		. "Québec correspondant à l'une des régions ci-dessous. "
+		. "Spécialités disponibles (slug) : " . ( $catalog ? implode( ', ', $catalog ) : 'aucune' ) . ". "
+		. "Régions disponibles (slug) : " . ( $region_catalog ? implode( ', ', $region_catalog ) : 'aucune' ) . ". "
+		. "Si aucune spécialité ne correspond clairement, renvoie une chaîne vide pour specialite_slug. Si aucune "
+		. "région n'est mentionnée ou ne correspond à la liste, renvoie une chaîne vide pour region_slug. Ces deux "
+		. "champs sont indépendants : un texte peut ne contenir ni l'un ni l'autre, l'un seulement, ou les deux. "
+		. "N'utilise JAMAIS un slug qui n'est pas dans les listes fournies. "
 		. "Réponds UNIQUEMENT avec l'objet structuré demandé — jamais de texte libre, jamais d'explication, jamais de conseil.";
 
 	$schema = array(
@@ -76,12 +93,16 @@ function acdq_ai_search() {
 				'type'        => 'string',
 				'description' => 'One of the provided specialty slugs, or an empty string if none clearly match.',
 			),
+			'region_slug' => array(
+				'type'        => 'string',
+				'description' => 'One of the provided region slugs if the text mentions that region or a city in it, else an empty string.',
+			),
 			'urgent' => array(
 				'type'        => 'boolean',
 				'description' => 'True if the text suggests this needs attention soon (e.g. pain, injury, "today", "urgent").',
 			),
 		),
-		'required'             => array( 'specialite_slug', 'urgent' ),
+		'required'             => array( 'specialite_slug', 'region_slug', 'urgent' ),
 		'additionalProperties' => false,
 	);
 
@@ -96,13 +117,19 @@ function acdq_ai_search() {
 	}
 
 	$parsed = json_decode( $result, true );
-	if ( ! is_array( $parsed ) || ! array_key_exists( 'specialite_slug', $parsed ) || ! array_key_exists( 'urgent', $parsed ) ) {
+	if (
+		! is_array( $parsed )
+		|| ! array_key_exists( 'specialite_slug', $parsed )
+		|| ! array_key_exists( 'region_slug', $parsed )
+		|| ! array_key_exists( 'urgent', $parsed )
+	) {
 		error_log( 'ACDQ AI search: response did not match expected format — ' . $result );
 		wp_send_json_success( array( 'url' => $keyword_url ) );
 	}
 
-	$slug   = is_string( $parsed['specialite_slug'] ) ? $parsed['specialite_slug'] : '';
-	$urgent = ! empty( $parsed['urgent'] );
+	$slug        = is_string( $parsed['specialite_slug'] ) ? $parsed['specialite_slug'] : '';
+	$region_slug = is_string( $parsed['region_slug'] ) ? $parsed['region_slug'] : '';
+	$urgent      = ! empty( $parsed['urgent'] );
 
 	// Belt and suspenders: never trust a slug the model produced unless it's
 	// literally one of the real taxonomy terms we handed it.
@@ -117,18 +144,36 @@ function acdq_ai_search() {
 		}
 	}
 
-	if ( ! $slug ) {
-		// Not a symptom/need description we could map to a specialty — treat
-		// it like the ordinary keyword search it probably is.
-		wp_send_json_success( array( 'url' => $keyword_url ) );
+	// Belt and suspenders for the region slug too.
+	if ( $region_slug && ! in_array( $region_slug, $valid_region_slugs, true ) ) {
+		$region_slug = '';
 	}
 
-	// Reuse the exact filter the directory's own AJAX system already supports
-	// (inc/ajax-filters.php reads this same 'specialite' param) rather than
-	// building a second tax_query here — filters.js applies it on load.
-	wp_send_json_success( array(
-		'url' => add_query_arg( 'specialite', rawurlencode( $slug ), $archive_url ),
-	) );
+	if ( $slug ) {
+		// A specialty/need match wins when both are present — it's the more
+		// actionable signal, and the site has no combined region+specialty
+		// filter yet (taxonomy-region.php and archive-clinique.php are
+		// separate templates), so we can only redirect to one taxonomy at a
+		// time. Reuse the exact filter the directory's own AJAX system
+		// already supports (inc/ajax-filters.php reads this same
+		// 'specialite' param) rather than building a second tax_query here —
+		// filters.js applies it on load.
+		wp_send_json_success( array(
+			'url' => add_query_arg( 'specialite', rawurlencode( $slug ), $archive_url ),
+		) );
+	}
+
+	if ( $region_slug ) {
+		$region_term = get_term_by( 'slug', $region_slug, 'region' );
+		$region_link = $region_term ? get_term_link( $region_term ) : false;
+		if ( $region_link && ! is_wp_error( $region_link ) ) {
+			wp_send_json_success( array( 'url' => $region_link ) );
+		}
+	}
+
+	// Neither a specialty need nor a recognizable region — treat it like the
+	// ordinary keyword search it probably is.
+	wp_send_json_success( array( 'url' => $keyword_url ) );
 }
 add_action( 'wp_ajax_acdq_ai_search', 'acdq_ai_search' );
 add_action( 'wp_ajax_nopriv_acdq_ai_search', 'acdq_ai_search' );
