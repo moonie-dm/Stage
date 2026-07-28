@@ -536,9 +536,14 @@ a {
 	color: #4169e1;
 }
 
-a:visited {
-	color: #800080;
-}
+/* No special :visited color: this rule used to set one (#800080, the
+   browser-default purple), but a:visited{color} has higher specificity than
+   any single-class rule (.btn-primary, .filter-chip, .clinic-share-btn,
+   .region-tile, etc.), so every branded button/pill/link on the site would
+   silently turn purple after being clicked once — a plain a:hover override
+   already exists below and works fine because *that* has a more specific
+   .btn-primary:hover counterpart; :visited never got one. Removing this
+   rather than patching every affected class individually. */
 
 a:hover,
 a:focus,
