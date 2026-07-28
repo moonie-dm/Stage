@@ -194,7 +194,18 @@ function acdq_process_csv_import() {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 			require_once ABSPATH . 'wp-admin/includes/image.php';
 			$attachment_id = media_sideload_image( esc_url_raw( $data['image_url'] ), $post_id, sanitize_text_field( $data['titre'] ), 'id' );
-			if ( ! is_wp_error( $attachment_id ) ) set_post_thumbnail( $post_id, $attachment_id );
+			if ( ! is_wp_error( $attachment_id ) ) {
+				set_post_thumbnail( $post_id, $attachment_id );
+				// Belt and suspenders: media_sideload_image() already generates
+				// sub-sizes (thumbnail/medium/etc.), but a large source image can
+				// silently fail that step under a tight PHP memory limit, leaving
+				// only the full-size original — which then gets served on every
+				// card/row that shows this clinic. Regenerating here catches that.
+				$file = get_attached_file( $attachment_id );
+				if ( $file ) {
+					wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
+				}
+			}
 		}
 
 		$field_map = array(

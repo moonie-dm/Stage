@@ -34,7 +34,7 @@ while ( have_posts() ) : the_post();
 
 				<p class="clinic-hero-meta">
 					<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.2 7-12.5S16.4 2 12 2 5 4.6 5 9.5 12 22 12 22Z" stroke="currentColor" stroke-width="1.6"/></svg>
-					<?php echo esc_html( get_field( 'adresse' ) . ', ' . get_field( 'ville' ) . ' ' . get_field( 'code_postal' ) ); ?>
+					<?php echo esc_html( acdq_format_clinic_address( get_the_ID() ) ); ?>
 				</p>
 				<?php if ( $tel ) : ?>
 					<p class="clinic-hero-meta">
@@ -45,7 +45,11 @@ while ( have_posts() ) : the_post();
 				<?php endif; ?>
 
 				<div class="clinic-hero-actions">
-					<a href="#acdq-booking" class="btn btn-primary">Demandez un rendez-vous</a>
+					<?php if ( $tel ) : ?>
+						<a href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $tel ) ); ?>" class="btn btn-primary">Appeler pour un rendez-vous</a>
+					<?php else : ?>
+						<a href="#acdq-booking" class="btn btn-primary">Comment prendre rendez-vous</a>
+					<?php endif; ?>
 					<?php if ( $accepte ) : ?>
 						<div class="trust-box">
 							<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2 4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4Z" stroke="currentColor" stroke-width="1.6"/></svg>

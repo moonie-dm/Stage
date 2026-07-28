@@ -22,7 +22,7 @@ $image   = function_exists( 'acdq_get_card_image' ) ? acdq_get_card_image( get_t
 	<h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
 
 	<p class="clinic-card-address">
-		<?php echo esc_html( get_field( 'adresse' ) ); ?>, <?php echo esc_html( get_field( 'ville' ) ); ?>
+		<?php echo esc_html( acdq_format_clinic_address( get_the_ID(), false ) ); ?>
 	</p>
 
 	<?php

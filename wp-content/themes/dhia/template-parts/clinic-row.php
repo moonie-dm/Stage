@@ -42,7 +42,7 @@ $image  = function_exists( 'acdq_get_card_image' ) ? acdq_get_card_image( get_th
 
 			<p class="clinic-row-meta">
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.2 7-12.5S16.4 2 12 2 5 4.6 5 9.5 12 22 12 22Z" stroke="currentColor" stroke-width="1.6"/></svg>
-				<?php echo esc_html( get_field( 'adresse' ) . ', ' . get_field( 'ville' ) ); ?>
+				<?php echo esc_html( acdq_format_clinic_address( get_the_ID(), false ) ); ?>
 			</p>
 			<?php if ( $tel ) : ?>
 				<p class="clinic-row-meta">
@@ -58,7 +58,10 @@ $image  = function_exists( 'acdq_get_card_image' ) ? acdq_get_card_image( get_th
 						Accepte de nouveaux patients
 					</div>
 				<?php endif; ?>
-				<a href="<?php the_permalink(); ?>" class="btn btn-primary">Demandez un rendez-vous</a>
+				<?php if ( $tel ) : ?>
+					<a href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $tel ) ); ?>" class="btn btn-ghost">Appelez</a>
+				<?php endif; ?>
+				<a href="<?php the_permalink(); ?>" class="btn btn-primary">Voir la fiche</a>
 			</div>
 		</div>
 	</div>

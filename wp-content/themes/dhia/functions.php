@@ -152,7 +152,12 @@ function dhia_scripts() {
 		wp_enqueue_script( 'acdq-share', get_template_directory_uri() . '/assets/js/share.js', array(), _S_VERSION, true );
 	}
 
-	$is_clinic_listing = is_post_type_archive( 'clinique' ) || is_tax( array( 'region', 'specialite' ) ) || is_search();
+	// Only archive-clinique.php and search.php actually contain the map/filter
+	// markup (.clinic-row-list, #acdq-map, .filter-chip) that these scripts look
+	// for — taxonomy-region.php and taxonomy-specialite.php are plain static
+	// loops with none of it, so they used to load Leaflet + map.js + distance.js
+	// + filters.js for nothing on every region/specialty page.
+	$is_clinic_listing = is_post_type_archive( 'clinique' ) || is_search();
 	$needs_map         = $is_clinic_listing || is_singular( 'clinique' );
 
 	if ( $needs_map ) {
@@ -223,6 +228,7 @@ add_action( 'pre_get_posts', 'acdq_search_clinics_only' );
 
 require get_template_directory() . '/inc/ajax-filters.php';
 require get_template_directory() . '/inc/acf-fields.php';
+require get_template_directory() . '/inc/seo.php';
 
 /**
  * AI features (Claude API). Each file is always loaded, but every hook it
@@ -280,6 +286,32 @@ function acdq_get_open_status( $post_id = null ) {
 		return array( 'ouvert' => $ouvert, 'texte' => ( $ouvert ? 'Ouvert' : 'Fermé' ) . ' · ' . $horaire );
 	}
 	return array( 'ouvert' => false, 'texte' => $horaire );
+}
+
+/**
+ * A clinic's display address — appends "ville" and/or "code_postal" only
+ * when they aren't already present in the "adresse" field, since that field
+ * sometimes already holds a full formatted address (e.g. pasted from an
+ * address-autocomplete widget) rather than just the street line the CSV
+ * importer expects. Without this check, clinics with a full address in
+ * "adresse" show their city and postal code twice.
+ */
+function acdq_format_clinic_address( $post_id = null, $include_postal = true ) {
+	if ( ! $post_id ) $post_id = get_the_ID();
+
+	$adresse     = trim( (string) get_field( 'adresse', $post_id ) );
+	$ville       = trim( (string) get_field( 'ville', $post_id ) );
+	$code_postal = $include_postal ? trim( (string) get_field( 'code_postal', $post_id ) ) : '';
+
+	$extra = array();
+	if ( $ville && false === stripos( $adresse, $ville ) ) {
+		$extra[] = $ville;
+	}
+	if ( $code_postal && false === stripos( $adresse, $code_postal ) ) {
+		$extra[] = $code_postal;
+	}
+
+	return $extra ? $adresse . ', ' . implode( ' ', $extra ) : $adresse;
 }
 
 /**

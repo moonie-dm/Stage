@@ -100,16 +100,35 @@ function acdq_get_card_image( $post_id = null, $size = 'medium' ) {
 	$gallery = acdq_get_gallery_photos( $post_id );
 	if ( $gallery ) {
 		$img = $gallery[0];
-		$url = ! empty( $img['sizes'][ $size ] ) ? $img['sizes'][ $size ] : $img['url'];
-		return array( 'url' => $url, 'alt' => ! empty( $img['alt'] ) ? $img['alt'] : get_the_title( $post_id ) );
+		return array( 'url' => acdq_pick_smallest_available_size( $img, $size ), 'alt' => ! empty( $img['alt'] ) ? $img['alt'] : get_the_title( $post_id ) );
 	}
 
 	if ( has_post_thumbnail( $post_id ) ) {
-		$src = wp_get_attachment_image_src( get_post_thumbnail_id( $post_id ), $size );
-		if ( $src ) {
-			return array( 'url' => $src[0], 'alt' => get_the_title( $post_id ) );
+		$thumb_id = get_post_thumbnail_id( $post_id );
+		foreach ( array( $size, 'medium', 'thumbnail' ) as $candidate ) {
+			$src = wp_get_attachment_image_src( $thumb_id, $candidate );
+			if ( $src ) {
+				return array( 'url' => $src[0], 'alt' => get_the_title( $post_id ) );
+			}
 		}
 	}
 
 	return null;
+}
+
+/**
+ * Prefer the requested size, then fall back through progressively smaller
+ * registered sizes rather than jumping straight to the full original. Some
+ * imported images never got sub-sizes generated (e.g. a failed or skipped
+ * wp_generate_attachment_metadata() call), and serving their multi-megabyte
+ * original for a small card thumbnail is wasted bandwidth on every page
+ * view — falling back to "thumbnail" first is still far better than that.
+ */
+function acdq_pick_smallest_available_size( $img, $size ) {
+	foreach ( array( $size, 'medium', 'thumbnail' ) as $candidate ) {
+		if ( ! empty( $img['sizes'][ $candidate ] ) ) {
+			return $img['sizes'][ $candidate ];
+		}
+	}
+	return $img['url'];
 }
