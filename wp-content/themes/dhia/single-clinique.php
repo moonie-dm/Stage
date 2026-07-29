@@ -11,15 +11,19 @@ while ( have_posts() ) : the_post();
 	$site        = get_field( 'site_web' );
 	$site_host   = $site ? preg_replace( '#^https?://(www\.)?#i', '', untrailingslashit( $site ) ) : '';
 	$rating      = function_exists( 'acdq_get_average_rating' ) ? acdq_get_average_rating( get_the_ID() ) : array( 'average' => 0, 'count' => 0 );
-	$photos      = function_exists( 'acdq_get_clinic_photos' ) ? acdq_get_clinic_photos( get_the_ID() ) : array();
+	$photos = function_exists( 'acdq_get_clinic_photos' ) ? acdq_get_clinic_photos( get_the_ID() ) : array();
 
-	// acdq_get_clinic_photos() deliberately skips the featured image (often a
-	// small logo from CSV imports) for the main carousel — but when there's no
-	// real gallery photo at all, showing that logo here beats the empty-state
-	// placeholder. It gets its own contained "logo card" treatment below
-	// rather than the gallery's full-bleed object-fit:cover, so a small/odd-
-	// shaped image doesn't look stretched or cropped.
-	$featured_image = ( ! $photos && has_post_thumbnail() ) ? wp_get_attachment_image_src( get_post_thumbnail_id(), 'large' ) : false;
+	// acdq_get_clinic_photos() deliberately only returns real gallery photos —
+	// but the fiche should always show the featured image ("image mise en
+	// avant") when one is set, regardless of whether gallery photos also
+	// exist, so it's prepended as the first slide rather than only appearing
+	// as a fallback when the gallery is empty.
+	if ( has_post_thumbnail() ) {
+		$featured_src = wp_get_attachment_image_src( get_post_thumbnail_id(), 'large' );
+		if ( $featured_src ) {
+			array_unshift( $photos, array( 'url' => $featured_src[0], 'alt' => get_the_title() ) );
+		}
+	}
 
 	// Most recent approved review, for the compact "Avis" summary card — the
 	// full list (and the comment form) still lives further down the page.
@@ -112,10 +116,6 @@ while ( have_posts() ) : the_post();
 								<?php endforeach; ?>
 							</div>
 						<?php endif; ?>
-					</div>
-				<?php elseif ( $featured_image ) : ?>
-					<div class="clinic-hero-featured-image">
-						<img src="<?php echo esc_url( $featured_image[0] ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>" loading="lazy">
 					</div>
 				<?php else : ?>
 					<div class="clinic-gallery-empty">
