@@ -102,6 +102,65 @@ add_action( 'wp_ajax_acdq_ai_chat', 'acdq_ai_chat' );
 add_action( 'wp_ajax_nopriv_acdq_ai_chat', 'acdq_ai_chat' );
 
 /**
+ * Backs the widget's guided "Trouver une clinique selon mon besoin" flow
+ * (see ai-chatbot.js) — a two-question intake (need, then region) alongside
+ * the widget's normal open-ended FAQ mode above. Both collected answers go
+ * through acdq_classify_need() (inc/ai-search.php), the exact same
+ * safety-constrained taxonomy classifier the hero search box uses, so this
+ * doesn't introduce a second prompt/validation path to keep in sync. The
+ * summary sent back is assembled here from validated, whitelisted data only
+ * (specialty/region names, a boolean) — never the model's own free text.
+ */
+function acdq_ai_chat_triage() {
+	check_ajax_referer( 'acdq_ai_chat', 'nonce' );
+
+	if ( ! function_exists( 'acdq_classify_need' ) ) {
+		wp_send_json_error( array( 'message' => "Ce service n'est pas disponible pour le moment." ) );
+	}
+
+	$need   = isset( $_POST['need'] ) ? sanitize_text_field( wp_unslash( $_POST['need'] ) ) : '';
+	$region = isset( $_POST['region'] ) ? sanitize_text_field( wp_unslash( $_POST['region'] ) ) : '';
+	$text   = trim( $need . ' ' . $region );
+
+	if ( '' === $text ) {
+		wp_send_json_error( array( 'message' => 'Aucune information reçue.' ) );
+	}
+
+	$result = acdq_classify_need( $text );
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( array( 'message' => "Désolé, je n'ai pas pu analyser votre demande. Essayez la recherche sur la page d'accueil, ou reformulez." ) );
+	}
+
+	$archive_url = get_post_type_archive_link( 'clinique' );
+	$url_args    = array();
+	if ( $result['specialite_slug'] ) $url_args['specialite'] = $result['specialite_slug'];
+	if ( $result['region_slug'] )     $url_args['region']     = $result['region_slug'];
+	$url = $url_args ? add_query_arg( $url_args, $archive_url ) : $archive_url;
+
+	$parts = array();
+	if ( $result['urgent'] ) {
+		$parts[] = 'Votre situation semble nécessiter une attention rapide.';
+	}
+	if ( $result['specialite_name'] ) {
+		$parts[] = 'Spécialité suggérée : ' . $result['specialite_name'] . '.';
+	}
+	if ( $result['region_name'] ) {
+		$parts[] = 'Région : ' . $result['region_name'] . '.';
+	}
+	if ( ! $parts ) {
+		$parts[] = "Je n'ai pas trouvé de correspondance précise — voici l'annuaire complet.";
+	}
+
+	wp_send_json_success( array(
+		'message' => implode( ' ', $parts ),
+		'urgent'  => $result['urgent'],
+		'url'     => $url,
+	) );
+}
+add_action( 'wp_ajax_acdq_ai_chat_triage', 'acdq_ai_chat_triage' );
+add_action( 'wp_ajax_nopriv_acdq_ai_chat_triage', 'acdq_ai_chat_triage' );
+
+/**
  * Collapsed-by-default chat widget markup, site-wide. Only prints when the
  * API key is configured — no key, no widget, no JS enqueued for it either
  * (see functions.php).
@@ -119,8 +178,10 @@ function acdq_ai_chat_widget() {
 				<span>Assistant DentisteQC</span>
 				<button type="button" class="acdq-chat-close" aria-label="Fermer">&times;</button>
 			</div>
+			<p class="acdq-chat-disclaimer">⚠️ Cet assistant ne donne aucun conseil médical ni diagnostic — il vous aide seulement à utiliser l'annuaire.</p>
 			<div class="acdq-chat-messages" id="acdq-chat-messages">
 				<div class="acdq-chat-msg acdq-chat-msg-bot">Bonjour ! Je peux vous aider à utiliser l'annuaire ou répondre à des questions générales — je ne donne pas de conseils médicaux.</div>
+				<button type="button" class="acdq-chat-quickstart" id="acdq-chat-quickstart">🔍 Trouver une clinique selon mon besoin</button>
 			</div>
 			<form class="acdq-chat-form" id="acdq-chat-form">
 				<input type="text" id="acdq-chat-input" placeholder="Votre question…" autocomplete="off">

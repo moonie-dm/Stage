@@ -2,7 +2,12 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
- * TASK 1 — Smart symptom/need search.
+ * TASK 1 — Smart symptom/need search, plus the shared taxonomy classifier
+ * (acdq_classify_need()) that also backs the chat widget's guided triage
+ * flow in inc/ai-chatbot.php. Keeping the classification logic here in one
+ * place means both entry points share the exact same safety-constrained
+ * prompt and the exact same validation against real taxonomy terms, instead
+ * of two prompts that could quietly drift apart.
  *
  * Note on scope: the spec asked for this on "the homepage hero search bar and
  * the main archive search" — but archive-clinique.php (and search.php) don't
@@ -18,29 +23,29 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * Rosemont" search still works exactly as it always has.
  *
  * SAFETY: the system prompt instructs the model to refuse any discussion of
- * symptoms, causes, or treatment and to respond only with the two allowed
- * fields. On top of that, this handler never trusts the model's output as
- * free text — it's used only to pick a specialty from a slug list we
- * generated from our own taxonomy, validated against that same list before
- * use, and to set a boolean. Nothing the model writes is ever echoed to the
- * page.
+ * symptoms, causes, or treatment and to respond only with the structured
+ * fields. On top of that, callers never trust the model's output as free
+ * text — it's used only to pick a specialty/region from slug lists we
+ * generated from our own taxonomy, validated against those same lists
+ * before use, and to set a boolean. Nothing the model writes is ever
+ * echoed to the page.
  */
 
-function acdq_ai_search() {
-	check_ajax_referer( 'acdq_ai_search', 'nonce' );
-
-	$text         = isset( $_POST['q'] ) ? sanitize_text_field( wp_unslash( $_POST['q'] ) ) : '';
-	$archive_url  = get_post_type_archive_link( 'clinique' );
-	$keyword_url  = add_query_arg( 's', rawurlencode( $text ), home_url( '/' ) );
-
+/**
+ * Classify free text against the real specialite/region taxonomies.
+ * Returns an array with 'specialite_slug', 'specialite_name', 'region_slug',
+ * 'region_name', 'urgent' — all already validated against real taxonomy
+ * terms — or a WP_Error when classification isn't possible (AI disabled,
+ * rate-limited, API failure, or a response that didn't parse), so callers
+ * can fall back to their own safe default rather than showing an error.
+ */
+function acdq_classify_need( $text ) {
 	if ( '' === trim( $text ) ) {
-		wp_send_json_success( array( 'url' => $archive_url ) );
+		return new WP_Error( 'acdq_empty_text', 'Texte vide.' );
 	}
 
-	// Any reason we can't safely classify: fall back to the exact search this
-	// text would already have triggered, no error shown to the visitor.
 	if ( ! acdq_ai_enabled() || ! acdq_ai_rate_limit_ok( 'search', 10 ) ) {
-		wp_send_json_success( array( 'url' => $keyword_url ) );
+		return new WP_Error( 'acdq_unavailable', 'Classification indisponible pour le moment.' );
 	}
 
 	$specialites = get_terms( array( 'taxonomy' => 'specialite', 'hide_empty' => false ) );
@@ -53,10 +58,6 @@ function acdq_ai_search() {
 		}
 	}
 
-	// Regions are a second, independent match: someone typing "toutes les cliniques
-	// de Laval" isn't describing a need or symptom at all, so it should never fall
-	// through to a raw keyword search when we can just send them to that region's
-	// existing taxonomy archive (see taxonomy-region.php) instead.
 	$regions            = get_terms( array( 'taxonomy' => 'region', 'hide_empty' => false ) );
 	$valid_region_slugs = array();
 	$region_catalog     = array();
@@ -68,7 +69,7 @@ function acdq_ai_search() {
 	}
 
 	if ( ! $valid_slugs && ! $valid_region_slugs ) {
-		wp_send_json_success( array( 'url' => $keyword_url ) );
+		return new WP_Error( 'acdq_no_taxonomy', 'Aucune spécialité ou région disponible.' );
 	}
 
 	$system = "Tu es un classificateur strict pour un annuaire de cliniques dentaires. "
@@ -113,7 +114,7 @@ function acdq_ai_search() {
 	);
 
 	if ( is_wp_error( $result ) ) {
-		wp_send_json_success( array( 'url' => $keyword_url ) );
+		return $result;
 	}
 
 	$parsed = json_decode( $result, true );
@@ -123,8 +124,8 @@ function acdq_ai_search() {
 		|| ! array_key_exists( 'region_slug', $parsed )
 		|| ! array_key_exists( 'urgent', $parsed )
 	) {
-		error_log( 'ACDQ AI search: response did not match expected format — ' . $result );
-		wp_send_json_success( array( 'url' => $keyword_url ) );
+		error_log( 'ACDQ AI classify: response did not match expected format — ' . $result );
+		return new WP_Error( 'acdq_parse_error', "La réponse n'a pas pu être interprétée." );
 	}
 
 	$slug        = is_string( $parsed['specialite_slug'] ) ? $parsed['specialite_slug'] : '';
@@ -144,27 +145,63 @@ function acdq_ai_search() {
 		}
 	}
 
-	// Belt and suspenders for the region slug too.
 	if ( $region_slug && ! in_array( $region_slug, $valid_region_slugs, true ) ) {
 		$region_slug = '';
 	}
 
-	if ( $slug ) {
-		// A specialty/need match wins when both are present — it's the more
-		// actionable signal, and the site has no combined region+specialty
-		// filter yet (taxonomy-region.php and archive-clinique.php are
-		// separate templates), so we can only redirect to one taxonomy at a
-		// time. Reuse the exact filter the directory's own AJAX system
-		// already supports (inc/ajax-filters.php reads this same
-		// 'specialite' param) rather than building a second tax_query here —
-		// filters.js applies it on load.
-		wp_send_json_success( array(
-			'url' => add_query_arg( 'specialite', rawurlencode( $slug ), $archive_url ),
-		) );
+	$specialite_term = $slug ? get_term_by( 'slug', $slug, 'specialite' ) : false;
+	$region_term     = $region_slug ? get_term_by( 'slug', $region_slug, 'region' ) : false;
+
+	return array(
+		'specialite_slug' => $slug,
+		'specialite_name' => $specialite_term ? $specialite_term->name : '',
+		'region_slug'     => $region_slug,
+		'region_name'     => $region_term ? $region_term->name : '',
+		'urgent'          => $urgent,
+	);
+}
+
+function acdq_ai_search() {
+	check_ajax_referer( 'acdq_ai_search', 'nonce' );
+
+	$text        = isset( $_POST['q'] ) ? sanitize_text_field( wp_unslash( $_POST['q'] ) ) : '';
+	$archive_url = get_post_type_archive_link( 'clinique' );
+	$keyword_url = add_query_arg( 's', rawurlencode( $text ), home_url( '/' ) );
+
+	if ( '' === trim( $text ) ) {
+		wp_send_json_success( array( 'url' => $archive_url ) );
 	}
 
-	if ( $region_slug ) {
-		$region_term = get_term_by( 'slug', $region_slug, 'region' );
+	$result = acdq_classify_need( $text );
+
+	// Any reason we couldn't safely classify: fall back to the exact search
+	// this text would already have triggered, no error shown to the visitor.
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_success( array( 'url' => $keyword_url ) );
+	}
+
+	if ( $result['specialite_slug'] && $result['region_slug'] ) {
+		// Both matched: combine them into the archive's own filter pipeline
+		// (inc/ajax-filters.php's tax_query supports specialite + region
+		// together — filters.js applies both on load) rather than picking
+		// just one and dropping the other.
+		wp_send_json_success( array( 'url' => add_query_arg(
+			array( 'specialite' => $result['specialite_slug'], 'region' => $result['region_slug'] ),
+			$archive_url
+		) ) );
+	}
+
+	if ( $result['specialite_slug'] ) {
+		wp_send_json_success( array( 'url' => add_query_arg( 'specialite', rawurlencode( $result['specialite_slug'] ), $archive_url ) ) );
+	}
+
+	if ( $result['region_slug'] ) {
+		// Region-only sends visitors to that region's own dedicated archive
+		// (taxonomy-region.php) rather than the filtered main directory —
+		// same canonical URL as every other link to that region on the site
+		// (homepage region tiles, footer, etc.), with no flash of
+		// unfiltered results while the AJAX filter kicks in.
+		$region_term = get_term_by( 'slug', $result['region_slug'], 'region' );
 		$region_link = $region_term ? get_term_link( $region_term ) : false;
 		if ( $region_link && ! is_wp_error( $region_link ) ) {
 			wp_send_json_success( array( 'url' => $region_link ) );
