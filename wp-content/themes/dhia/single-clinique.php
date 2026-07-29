@@ -13,6 +13,14 @@ while ( have_posts() ) : the_post();
 	$rating      = function_exists( 'acdq_get_average_rating' ) ? acdq_get_average_rating( get_the_ID() ) : array( 'average' => 0, 'count' => 0 );
 	$photos      = function_exists( 'acdq_get_clinic_photos' ) ? acdq_get_clinic_photos( get_the_ID() ) : array();
 
+	// acdq_get_clinic_photos() deliberately skips the featured image (often a
+	// small logo from CSV imports) for the main carousel — but when there's no
+	// real gallery photo at all, showing that logo here beats the empty-state
+	// placeholder. It gets its own contained "logo card" treatment below
+	// rather than the gallery's full-bleed object-fit:cover, so a small/odd-
+	// shaped image doesn't look stretched or cropped.
+	$featured_image = ( ! $photos && has_post_thumbnail() ) ? wp_get_attachment_image_src( get_post_thumbnail_id(), 'large' ) : false;
+
 	// Most recent approved review, for the compact "Avis" summary card — the
 	// full list (and the comment form) still lives further down the page.
 	$latest_review = null;
@@ -104,6 +112,10 @@ while ( have_posts() ) : the_post();
 								<?php endforeach; ?>
 							</div>
 						<?php endif; ?>
+					</div>
+				<?php elseif ( $featured_image ) : ?>
+					<div class="clinic-hero-featured-image">
+						<img src="<?php echo esc_url( $featured_image[0] ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>" loading="lazy">
 					</div>
 				<?php else : ?>
 					<div class="clinic-gallery-empty">

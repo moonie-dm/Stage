@@ -1573,6 +1573,16 @@ main{ max-width: var(--container); margin: 0 auto; padding: 40px 24px 80px; }
 .clinic-gallery-empty svg{ width: 56px; height: 56px; }
 .clinic-gallery-empty span{ font-size: .85rem; font-weight: 500; color: var(--ink-soft); }
 
+/* Featured-image fallback when there's no real gallery photo — contained
+   and padded rather than the gallery's full-bleed object-fit:cover, so a
+   small or odd-shaped logo doesn't look stretched or cropped. */
+.clinic-hero-featured-image{
+	height: 100%; min-height: 300px; border-radius: var(--radius-md); overflow: hidden;
+	background: var(--surface); border: 1px solid var(--line);
+	display: flex; align-items: center; justify-content: center; padding: 28px;
+}
+.clinic-hero-featured-image img{ max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+
 @media (max-width: 900px){
 	.clinic-hero-inner{ grid-template-columns: 1fr; }
 	.clinic-hero-media{ order: -1; min-height: 260px; }
