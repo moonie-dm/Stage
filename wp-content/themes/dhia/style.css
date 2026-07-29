@@ -1105,6 +1105,32 @@ a:hover{ color: var(--accent-dark); }
 .main-navigation a{ color: var(--ink-soft); font-weight: 500; }
 .main-navigation a:hover{ color: var(--primary); }
 
+/* Mobile toggle button — hidden on desktop; js/navigation.js (already
+   enqueued sitewide) toggles the .toggled class this responds to. */
+.menu-toggle{
+	display: none;
+	align-items: center; gap: 8px;
+	background: none; border: 1px solid var(--line); border-radius: var(--radius-sm);
+	padding: .5em .9em; font-family: var(--font-body); font-weight: 600; font-size: .9rem;
+	color: var(--ink); cursor: pointer;
+}
+.menu-toggle:hover{ border-color: var(--primary); }
+
+@media (max-width: 900px){
+	.menu-toggle{ display: inline-flex; }
+	.main-navigation{ flex: 0 0 auto; position: relative; }
+	.main-navigation ul{
+		display: none; flex-direction: column; gap: 2px;
+		position: absolute; top: calc(100% + 12px); left: 0;
+		background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md);
+		box-shadow: var(--shadow-pop); padding: 10px; min-width: 200px; z-index: 200;
+	}
+	.main-navigation.toggled ul{ display: flex; }
+	.main-navigation ul li{ width: 100%; }
+	.main-navigation a{ display: block; padding: .6em .8em; border-radius: var(--radius-sm); }
+	.main-navigation a:hover{ background: var(--bg); }
+}
+
 /* ==========================================================================
    Hero
    ========================================================================== */
@@ -1189,9 +1215,6 @@ main{ max-width: var(--container); margin: 0 auto; padding: 40px 24px 80px; }
 .site-footer a:hover{ color: #fff; }
 .site-footer p{ margin: 0; font-size: .85rem; }
 
-@media (max-width: 720px){
-	.main-navigation ul{ gap: 16px; flex-wrap: wrap; }
-}
 /* ==========================================================================
    Breadcrumbs
    ========================================================================== */

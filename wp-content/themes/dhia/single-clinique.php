@@ -57,7 +57,7 @@ while ( have_posts() ) : the_post();
 				<?php if ( $tel ) : ?>
 					<p class="clinic-hero-meta">
 						<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.7a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2Z" stroke="currentColor" stroke-width="1.5"/></svg>
-						<a href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $tel ) ); ?>"><?php echo esc_html( $tel ); ?></a>
+						<a href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $tel ) ); ?>"><?php echo esc_html( acdq_format_phone_display( $tel ) ); ?></a>
 					</p>
 				<?php endif; ?>
 				<?php if ( $site ) : ?>
@@ -202,7 +202,7 @@ while ( have_posts() ) : the_post();
 			<aside class="clinic-sidebar-cta">
 				<h2>Demandez un rendez-vous</h2>
 				<?php if ( $tel ) : ?>
-					<a href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $tel ) ); ?>" class="btn btn-ghost"><?php echo esc_html( $tel ); ?></a>
+					<a href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $tel ) ); ?>" class="btn btn-ghost"><?php echo esc_html( acdq_format_phone_display( $tel ) ); ?></a>
 				<?php endif; ?>
 				<?php if ( $accepte ) : ?>
 					<div class="trust-box trust-box--on-dark">

@@ -16,12 +16,16 @@
 		<div class="site-branding">
 			<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php bloginfo( 'name' ); ?></a>
 		</div>
-		<nav class="main-navigation" aria-label="<?php esc_attr_e( 'Menu principal', 'dhia' ); ?>">
+		<nav id="site-navigation" class="main-navigation" aria-label="<?php esc_attr_e( 'Menu principal', 'dhia' ); ?>">
+			<button class="menu-toggle" aria-controls="primary-menu" aria-expanded="false">
+				<?php esc_html_e( 'Menu', 'dhia' ); ?>
+			</button>
 			<?php
 			wp_nav_menu( array(
-				'theme_location' => 'menu-1',
+				'theme_location' => 'primary_menu',
 				'container'      => false,
-				'fallback_cb'    => false,
+				'menu_id'        => 'primary-menu',
+				'fallback_cb'    => 'dhia_primary_menu_fallback',
 			) );
 			?>
 		</nav>

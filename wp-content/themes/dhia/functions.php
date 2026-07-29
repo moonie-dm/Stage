@@ -49,7 +49,7 @@ function dhia_setup() {
 	// This theme uses wp_nav_menu() in one location.
 	register_nav_menus(
 		array(
-			'menu-1' => esc_html__( 'Primary', 'dhia' ),
+			'primary_menu' => esc_html__( 'Menu Principal', 'dhia' ),
 		)
 	);
 
@@ -101,6 +101,38 @@ function dhia_setup() {
 	);
 }
 add_action( 'after_setup_theme', 'dhia_setup' );
+
+/**
+ * Shown in place of wp_nav_menu() only when no menu is assigned to the
+ * 'primary_menu' location in Apparence → Menus. Mirrors wp_nav_menu()'s own
+ * <ul id="primary-menu" class="menu"> markup so the existing nav CSS and the
+ * mobile toggle script (js/navigation.js) both apply to it exactly the same
+ * as a real menu. Each link is only included if it actually resolves —
+ * never points visitors at a page that doesn't exist.
+ */
+function dhia_primary_menu_fallback() {
+	$links = array(
+		array( 'label' => __( 'Accueil', 'dhia' ), 'url' => home_url( '/' ) ),
+		array( 'label' => __( 'Annuaire', 'dhia' ), 'url' => get_post_type_archive_link( 'clinique' ) ),
+	);
+
+	$urgence_term = get_term_by( 'slug', 'urgence-dentaire', 'specialite' );
+	if ( $urgence_term ) {
+		$links[] = array( 'label' => __( 'Urgences', 'dhia' ), 'url' => get_term_link( $urgence_term ) );
+	}
+
+	$about_page = get_page_by_path( 'a-propos' );
+	if ( $about_page ) {
+		$links[] = array( 'label' => __( 'À propos', 'dhia' ), 'url' => get_permalink( $about_page ) );
+	}
+
+	echo '<ul id="primary-menu" class="menu">';
+	foreach ( $links as $link ) {
+		if ( empty( $link['url'] ) || is_wp_error( $link['url'] ) ) continue;
+		echo '<li><a href="' . esc_url( $link['url'] ) . '">' . esc_html( $link['label'] ) . '</a></li>';
+	}
+	echo '</ul>';
+}
 
 /**
  * Set the content width in pixels, based on the theme's design and stylesheet.
@@ -312,6 +344,28 @@ function acdq_format_clinic_address( $post_id = null, $include_postal = true ) {
 	}
 
 	return $extra ? $adresse . ', ' . implode( ' ', $extra ) : $adresse;
+}
+
+/**
+ * Displayed phone number in "(XXX) XXX-XXXX" format for standard 10-digit
+ * North American numbers (with or without a leading "1" country code) —
+ * falls back to the original stored value unchanged for anything else
+ * (extensions, non-North-American numbers, malformed data) rather than
+ * mangling it. Display only: tel: links keep using the raw digits, since
+ * that's what dialing needs, not this formatting.
+ */
+function acdq_format_phone_display( $phone ) {
+	$digits = preg_replace( '/[^0-9]/', '', (string) $phone );
+
+	if ( 11 === strlen( $digits ) && '1' === $digits[0] ) {
+		$digits = substr( $digits, 1 );
+	}
+
+	if ( 10 !== strlen( $digits ) ) {
+		return $phone;
+	}
+
+	return sprintf( '(%s) %s-%s', substr( $digits, 0, 3 ), substr( $digits, 3, 3 ), substr( $digits, 6 ) );
 }
 
 /**
