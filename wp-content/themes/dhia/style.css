@@ -1266,6 +1266,12 @@ main{ max-width: var(--container); margin: 0 auto; padding: 40px 24px 80px; }
 }
 .search-bar .btn{ border-radius: var(--radius-md); flex-shrink: 0; }
 
+.near-me-link{
+	display: inline-flex; align-items: center; gap: 6px;
+	margin-top: 44px; color: var(--ink-soft); font-size: .88rem; font-weight: 600;
+}
+.near-me-link:hover{ color: var(--accent-dark); }
+
 /* quick-filter pills below the floating search card */
 .hero-pills{
 	display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
@@ -1415,6 +1421,41 @@ main{ max-width: var(--container); margin: 0 auto; padding: 40px 24px 80px; }
 .home-latest{ padding: 24px 24px 72px; }
 .home-latest-cta{ text-align: center; margin-top: 28px; }
 .archive-title{ max-width: var(--container); margin: 40px auto 8px; padding: 0 24px; }
+
+/* Recent-clinics carousel — native scroll-snap rather than a JS transform
+   track: free touch/trackpad swipe on mobile, buttons just nudge scrollLeft
+   (see assets/js/home-carousel.js). */
+.home-latest-carousel{ position: relative; margin-top: 8px; }
+.home-latest-viewport{
+	display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory;
+	padding: 4px 4px 12px; scrollbar-width: thin;
+}
+.home-latest-slide{ flex: 0 0 300px; scroll-snap-align: start; }
+.home-latest-slide .clinic-card{ height: 100%; }
+.home-latest-arrow{
+	position: absolute; top: 40%; transform: translateY(-50%);
+	width: 40px; height: 40px; border-radius: 999px;
+	background: var(--surface); border: 1px solid var(--line);
+	display: flex; align-items: center; justify-content: center;
+	color: var(--ink); cursor: pointer; box-shadow: var(--shadow-card);
+}
+.home-latest-arrow:hover{ background: var(--accent-tint); color: var(--accent-dark); }
+.home-latest-prev{ left: -18px; }
+.home-latest-next{ right: -18px; }
+@media (max-width: 700px){
+	.home-latest-arrow{ display: none; }
+}
+
+/* Homepage overview map */
+.home-map-section{ padding: 48px 24px; }
+.home-map-section h2{ margin-bottom: 16px; }
+.home-map{
+	height: 420px; border-radius: var(--radius-lg); border: 1px solid var(--line);
+	background: var(--primary-tint); overflow: hidden;
+}
+@media (max-width: 700px){
+	.home-map{ height: 300px; }
+}
 
 .search-no-results{ text-align: center; padding: 48px 28px; margin-top: 8px; }
 .search-no-results h2{ margin-bottom: 8px; }

@@ -190,12 +190,17 @@ function dhia_scripts() {
 	// loops with none of it, so they used to load Leaflet + map.js + distance.js
 	// + filters.js for nothing on every region/specialty page.
 	$is_clinic_listing = is_post_type_archive( 'clinique' ) || is_search();
-	$needs_map         = $is_clinic_listing || is_singular( 'clinique' );
+	$needs_map         = $is_clinic_listing || is_singular( 'clinique' ) || is_front_page();
 
 	if ( $needs_map ) {
 		wp_enqueue_style( 'acdq-leaflet', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', array(), '1.9.4' );
 		wp_enqueue_script( 'acdq-leaflet', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', array(), '1.9.4', true );
 		wp_enqueue_script( 'acdq-map', get_template_directory_uri() . '/assets/js/map.js', array( 'acdq-leaflet' ), _S_VERSION, true );
+
+		if ( is_front_page() ) {
+			wp_localize_script( 'acdq-map', 'acdqHomeMapPoints', acdq_home_map_points() );
+			wp_enqueue_script( 'acdq-home-carousel', get_template_directory_uri() . '/assets/js/home-carousel.js', array(), _S_VERSION, true );
+		}
 	}
 	if ( $is_clinic_listing ) {
 		wp_enqueue_script( 'acdq-distance', get_template_directory_uri() . '/assets/js/distance.js', array(), _S_VERSION, true );
@@ -347,6 +352,16 @@ function acdq_format_clinic_address( $post_id = null, $include_postal = true ) {
 }
 
 /**
+ * "1 clinique" vs "3 cliniques" — every "$count cliniques" string in this
+ * theme used to hardcode the plural regardless of $count, so a region or
+ * specialty with exactly one clinic read "1 cliniques".
+ */
+function acdq_clinique_count_label( $count ) {
+	$count = (int) $count;
+	return $count . ' ' . ( 1 === $count ? 'clinique' : 'cliniques' );
+}
+
+/**
  * Displayed phone number in "(XXX) XXX-XXXX" format for standard 10-digit
  * North American numbers (with or without a leading "1" country code) —
  * falls back to the original stored value unchanged for anything else
@@ -366,6 +381,39 @@ function acdq_format_phone_display( $phone ) {
 	}
 
 	return sprintf( '(%s) %s-%s', substr( $digits, 0, 3 ), substr( $digits, 3, 3 ), substr( $digits, 6 ) );
+}
+
+/**
+ * Lightweight {lat, lng, title, url} list for every published clinic that
+ * has coordinates — feeds the homepage overview map (assets/js/map.js's
+ * initHomeMap()). Kept to just the fields the map needs (ids only from
+ * WP_Query, not full post objects) since this can run across every clinic
+ * on the site.
+ */
+function acdq_home_map_points() {
+	$points = array();
+	$query  = new WP_Query( array(
+		'post_type'      => 'clinique',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+	) );
+
+	foreach ( $query->posts as $post_id ) {
+		$lat = get_field( 'latitude', $post_id );
+		$lng = get_field( 'longitude', $post_id );
+		if ( '' === $lat || '' === $lng || false === $lat || false === $lng ) continue;
+
+		$points[] = array(
+			'lat'   => (float) $lat,
+			'lng'   => (float) $lng,
+			'title' => get_the_title( $post_id ),
+			'url'   => get_permalink( $post_id ),
+		);
+	}
+
+	return $points;
 }
 
 /**

@@ -12,11 +12,12 @@
 		var specSelect = document.querySelector( '[data-role="specialite"]' );
 		var regionSelect = document.querySelector( '[data-role="region"]' );
 		var sortSelect = document.querySelector( '[data-role="sort"]' );
+		var ratingSelect = document.querySelector( '[data-role="rating"]' );
 
 		// Carries the current search term (if any) through every subsequent chip/sort refresh,
 		// so filtering on /?s=... results doesn't silently drop back to the full directory.
 		var state = {
-			open: false, accepting: false, specialite: '', region: '', sort: 'date',
+			open: false, accepting: false, specialite: '', region: '', sort: 'date', rating: 0,
 			search: acdqFilters.search || '', userLat: null, userLng: null,
 		};
 
@@ -39,6 +40,12 @@
 		if ( regionSelect ) {
 			regionSelect.addEventListener( 'change', function () {
 				state.region = regionSelect.value;
+				fetchResults();
+			} );
+		}
+		if ( ratingSelect ) {
+			ratingSelect.addEventListener( 'change', function () {
+				state.rating = parseInt( ratingSelect.value, 10 ) || 0;
 				fetchResults();
 			} );
 		}
@@ -81,6 +88,7 @@
 		var presetFilter = presetParams.get( 'f' );
 		var presetSpecialite = presetParams.get( 'specialite' );
 		var presetRegion = presetParams.get( 'region' );
+		var presetNear = presetParams.get( 'near' ) === '1';
 		var needsPresetFetch = false;
 
 		if ( presetFilter === 'open' && openBtn ) {
@@ -112,7 +120,15 @@
 				needsPresetFetch = true;
 			}
 		}
-		if ( needsPresetFetch ) {
+		// From the homepage's "Près de moi" link (?near=1) — request geolocation
+		// right here rather than passing coordinates through the URL, so it's
+		// exactly the same privacy-conscious, user-initiated prompt as manually
+		// picking "Plus proche" from the sort dropdown, just pre-triggered.
+		if ( presetNear && sortSelect ) {
+			sortSelect.selectedIndex = 2;
+			state.sort = 'distance';
+			requestDistanceSort();
+		} else if ( needsPresetFetch ) {
 			fetchResults();
 		}
 
@@ -125,6 +141,7 @@
 			params.set( 'region', state.region );
 			params.set( 'open', state.open ? '1' : '0' );
 			params.set( 'accepting', state.accepting ? '1' : '0' );
+			params.set( 'rating', state.rating );
 			params.set( 'sort', state.sort );
 			params.set( 's', state.search );
 			if ( state.sort === 'distance' && state.userLat !== null ) {

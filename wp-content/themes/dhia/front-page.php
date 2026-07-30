@@ -22,6 +22,10 @@ $urgence_url  = $urgence_term ? get_term_link( $urgence_term ) : add_query_arg( 
 				<input type="search" name="s" placeholder="Nom, ville ou spécialité — ou décrivez votre besoin">
 				<button type="submit" class="btn btn-primary">Rechercher</button>
 			</form>
+			<a class="near-me-link" href="<?php echo esc_url( add_query_arg( 'near', '1', $archive_url ) ); ?>">
+				<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.2 7-12.5S16.4 2 12 2 5 4.6 5 9.5 12 22 12 22Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="1.6"/></svg>
+				Près de moi
+			</a>
 		</div>
 
 		<div class="hero-search-art" aria-hidden="true">
@@ -113,10 +117,16 @@ $urgence_url  = $urgence_term ? get_term_link( $urgence_term ) : add_query_arg( 
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.2 7-12.5S16.4 2 12 2 5 4.6 5 9.5 12 22 12 22Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="1.6"/></svg>
 				</span>
 				<span class="region-tile-name"><?php echo esc_html( $region->name ); ?></span>
-				<span class="region-tile-count acdq-mono"><?php echo esc_html( $region->count ); ?> cliniques</span>
+				<span class="region-tile-count acdq-mono"><?php echo esc_html( acdq_clinique_count_label( $region->count ) ); ?></span>
 			</a>
 		<?php endforeach; ?>
 	</div>
+</section>
+
+<!-- CARTE -->
+<section class="container home-map-section">
+	<h2>Explorez les cliniques sur la carte</h2>
+	<div id="acdq-home-map" class="home-map"></div>
 </section>
 
 <!-- FAQ -->
@@ -147,13 +157,25 @@ $urgence_url  = $urgence_term ? get_term_link( $urgence_term ) : add_query_arg( 
 <!-- CLINIQUES RÉCENTES -->
 <section class="container home-latest">
 	<h2>Cliniques récemment ajoutées</h2>
-	<div class="clinic-grid">
-		<?php
-		$latest = new WP_Query( array( 'post_type' => 'clinique', 'posts_per_page' => 3, 'orderby' => 'date', 'order' => 'DESC' ) );
-		if ( $latest->have_posts() ) : while ( $latest->have_posts() ) : $latest->the_post();
-			get_template_part( 'template-parts/clinic-card' );
-		endwhile; wp_reset_postdata(); endif;
-		?>
+	<div class="home-latest-carousel">
+		<div class="home-latest-viewport" id="acdq-home-latest-viewport">
+			<?php
+			$latest = new WP_Query( array( 'post_type' => 'clinique', 'posts_per_page' => 8, 'orderby' => 'date', 'order' => 'DESC' ) );
+			if ( $latest->have_posts() ) : while ( $latest->have_posts() ) : $latest->the_post();
+				?>
+				<div class="home-latest-slide"><?php get_template_part( 'template-parts/clinic-card' ); ?></div>
+				<?php
+			endwhile; wp_reset_postdata(); endif;
+			?>
+		</div>
+		<?php if ( $latest->post_count > 1 ) : ?>
+			<button type="button" class="home-latest-arrow home-latest-prev" aria-label="Cliniques précédentes">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+			<button type="button" class="home-latest-arrow home-latest-next" aria-label="Cliniques suivantes">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m9 5 7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+		<?php endif; ?>
 	</div>
 	<p class="home-latest-cta">
 		<a class="btn btn-ghost" href="<?php echo esc_url( get_post_type_archive_link( 'clinique' ) ); ?>">Voir toutes les cliniques →</a>

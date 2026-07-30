@@ -8,6 +8,7 @@ function acdq_filter_cliniques() {
 	$region     = isset( $_POST['region'] ) ? sanitize_text_field( wp_unslash( $_POST['region'] ) ) : '';
 	$open_only  = isset( $_POST['open'] ) && $_POST['open'] === '1';
 	$accepting  = isset( $_POST['accepting'] ) && $_POST['accepting'] === '1';
+	$min_rating = isset( $_POST['rating'] ) ? max( 0, (int) $_POST['rating'] ) : 0;
 	$sort       = isset( $_POST['sort'] ) ? sanitize_text_field( wp_unslash( $_POST['sort'] ) ) : 'date';
 	$paged      = isset( $_POST['paged'] ) ? max( 1, (int) $_POST['paged'] ) : 1;
 	$search     = isset( $_POST['s'] ) ? sanitize_text_field( wp_unslash( $_POST['s'] ) ) : '';
@@ -19,11 +20,12 @@ function acdq_filter_cliniques() {
 	$args = array(
 		'post_type'      => 'clinique',
 		'post_status'    => 'publish',
-		// Pull everything when we need to filter/sort in PHP rather than in SQL: open-only and
-		// accepting-patients are both checked per-post below (via the same get_field() the card
-		// display already trusts — a raw meta_query can disagree with it if a post has a stale
-		// duplicate meta row), and distance sorting needs the full set before it can rank them.
-		'posts_per_page' => ( $open_only || $accepting || $sort_by_distance ) ? -1 : 10,
+		// Pull everything when we need to filter/sort in PHP rather than in SQL: open-only,
+		// accepting-patients, and minimum rating are all checked per-post below (rating isn't
+		// a taxonomy or a reliable meta field — it's computed from approved comment ratings via
+		// acdq_get_average_rating(), same as the card display already uses), and distance
+		// sorting needs the full set before it can rank them.
+		'posts_per_page' => ( $open_only || $accepting || $min_rating || $sort_by_distance ) ? -1 : 10,
 		'paged'          => $paged,
 	);
 
@@ -74,6 +76,10 @@ function acdq_filter_cliniques() {
 				if ( ! $statut['ouvert'] ) continue;
 			}
 			if ( $accepting && ! get_field( 'accepte_nouveaux_patients', get_the_ID() ) ) continue;
+			if ( $min_rating ) {
+				$rating = function_exists( 'acdq_get_average_rating' ) ? acdq_get_average_rating( get_the_ID() ) : array( 'average' => 0 );
+				if ( $rating['average'] < $min_rating ) continue;
+			}
 			get_template_part( 'template-parts/clinic-row' );
 			$shown++;
 		}

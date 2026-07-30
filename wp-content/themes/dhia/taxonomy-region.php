@@ -7,7 +7,7 @@ $term = get_queried_object();
 
 <section class="page-hero">
 	<div class="container">
-		<span class="eyebrow"><?php echo esc_html( $term->count ); ?> cliniques dans cette région</span>
+		<span class="eyebrow"><?php echo esc_html( acdq_clinique_count_label( $term->count ) ); ?> dans cette région</span>
 		<h1><?php single_term_title(); ?></h1>
 	</div>
 </section>

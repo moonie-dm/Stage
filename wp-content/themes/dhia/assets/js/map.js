@@ -190,7 +190,45 @@
 		L.marker( [ lat, lng ], { icon: icon } ).addTo( clinicMap );
 	}
 
+	/**
+	 * Homepage overview map (#acdq-home-map) — every published clinic with
+	 * coordinates, from acdqHomeMapPoints (see acdq_home_map_points() in
+	 * functions.php). No scroll-sync (there's no paired list to sync
+	 * against on the homepage), just markers + popups linking to each fiche.
+	 */
+	function initHomeMap() {
+		var el = document.getElementById( 'acdq-home-map' );
+		if ( ! el || typeof L === 'undefined' ) return;
+
+		var points = window.acdqHomeMapPoints || [];
+		if ( ! points.length ) return;
+
+		var homeMap = L.map( el ).setView( [ 52.5, -71.5 ], 5 );
+		L.tileLayer( 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+			subdomains: 'abcd',
+			maxZoom: 19,
+		} ).addTo( homeMap );
+
+		var icon = L.divIcon({
+			className: 'acdq-marker',
+			html: '<div class="acdq-marker-pin"></div>',
+			iconSize: [26, 26],
+			iconAnchor: [13, 26],
+			popupAnchor: [0, -26],
+		});
+
+		var bounds = [];
+		points.forEach( function ( p ) {
+			L.marker( [ p.lat, p.lng ], { icon: icon } ).addTo( homeMap )
+				.bindPopup( '<strong>' + p.title + '</strong><br><a href="' + p.url + '">Voir la fiche</a>' );
+			bounds.push( [ p.lat, p.lng ] );
+		} );
+		if ( bounds.length ) homeMap.fitBounds( bounds, { padding: [ 30, 30 ], maxZoom: 11 } );
+	}
+
 	window.acdqInitMap = initMap;
 	document.addEventListener( 'DOMContentLoaded', initMap );
 	document.addEventListener( 'DOMContentLoaded', initClinicMap );
+	document.addEventListener( 'DOMContentLoaded', initHomeMap );
 } )();

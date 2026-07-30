@@ -35,12 +35,12 @@ function acdq_get_page_description() {
 
 	if ( is_tax( 'region' ) ) {
 		$term = get_queried_object();
-		return $term ? "Cliniques dentaires dans la région de {$term->name} : comparez {$term->count} cliniques, consultez leurs disponibilités et contactez-les directement." : '';
+		return $term ? "Cliniques dentaires dans la région de {$term->name} : comparez " . acdq_clinique_count_label( $term->count ) . ", consultez leurs disponibilités et contactez-les directement." : '';
 	}
 
 	if ( is_tax( 'specialite' ) ) {
 		$term = get_queried_object();
-		return $term ? "Cliniques offrant {$term->name} au Québec : comparez {$term->count} cliniques, consultez leurs disponibilités et contactez-les directement." : '';
+		return $term ? "Cliniques offrant {$term->name} au Québec : comparez " . acdq_clinique_count_label( $term->count ) . ", consultez leurs disponibilités et contactez-les directement." : '';
 	}
 
 	if ( is_post_type_archive( 'clinique' ) ) {

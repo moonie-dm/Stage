@@ -23,6 +23,11 @@ $regions     = get_terms( array( 'taxonomy' => 'region', 'hide_empty' => true ) 
 				<option value="<?php echo esc_attr( $r->slug ); ?>"><?php echo esc_html( $r->name ); ?></option>
 			<?php endforeach; ?>
 		</select>
+		<select class="filter-select" data-role="rating">
+			<option value="0">Toutes les notes</option>
+			<option value="4">4+ étoiles</option>
+			<option value="3">3+ étoiles</option>
+		</select>
 		<span class="sort-label">Trier
 			<select class="filter-select" data-role="sort">
 				<option>Plus récent</option>
